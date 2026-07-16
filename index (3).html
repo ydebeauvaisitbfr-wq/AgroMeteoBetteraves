@@ -1,0 +1,739 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Thermometer, CloudRain, Sun, Snowflake, Sprout, AlertTriangle, Calendar, MapPin, TrendingUp, TrendingDown, Minus, Search, Download, Flag, Clock, Info
+} from 'lucide-react';
+import { 
+  ResponsiveContainer, ComposedChart, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip, Legend, Line, Bar 
+} from 'recharts';
+
+const BEET_STAGES = [
+  { name: 'Levée', gdd: 120 },
+  { name: '2 Feuilles', gdd: 250 },
+  { name: '4 Feuilles', gdd: 350 },
+  { name: '6 Feuilles', gdd: 450 },
+  { name: 'Fermeture des rangs', gdd: 900 }
+];
+
+const exportChartAsPNG = (containerId, fileName) => {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const svg = container.querySelector('svg');
+  if (!svg) return;
+  
+  const clonedSvg = svg.cloneNode(true);
+  clonedSvg.style.backgroundColor = '#ffffff';
+  
+  const svgData = new XMLSerializer().serializeToString(clonedSvg);
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  const img = new Image();
+  
+  img.onload = () => {
+    canvas.width = svg.clientWidth || svg.getBoundingClientRect().width;
+    canvas.height = svg.clientHeight || svg.getBoundingClientRect().height;
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0);
+    const a = document.createElement("a");
+    a.download = fileName + ".png";
+    a.href = canvas.toDataURL("image/png");
+    a.click();
+  };
+  
+  img.src = "data:image/svg+xml;base64," + window.btoa(unescape(encodeURIComponent(svgData)));
+};
+
+const getPastDate = (daysAgo) => {
+  const date = new Date();
+  date.setDate(date.getDate() - daysAgo);
+  return date.toISOString().split('T')[0];
+};
+
+const getDefaultSowingDate = () => {
+  const date = new Date();
+  date.setMonth(2); // Mars (0-indexed)
+  date.setDate(15);
+  return date.toISOString().split('T')[0];
+};
+
+const checkSowingDateValid = (dateString) => {
+  if (!dateString) return false;
+  const date = new Date(dateString);
+  const month = date.getMonth() + 1; // 1 to 12
+  const day = date.getDate();
+
+  if (month === 2 && day >= 15) return true;
+  if (month === 3 || month === 4) return true;
+  if (month === 5 && day <= 15) return true;
+  return false;
+};
+
+export default function AgroMeteoApp() {
+  // États de localisation
+  const [cityQuery, setCityQuery] = useState('Amiens (Hauts-de-France)');
+  const [locationName, setLocationName] = useState('Amiens (Hauts-de-France)');
+  const [cityResults, setCityResults] = useState([]);
+  const [isSearchingCity, setIsSearchingCity] = useState(false);
+  const [showCityDropdown, setShowCityDropdown] = useState(false);
+  const [stationInfo, setStationInfo] = useState(null);
+  
+  // États des paramètres
+  const [lat, setLat] = useState('49.894');
+  const [lon, setLon] = useState('2.295');
+  const [startDate, setStartDate] = useState(getDefaultSowingDate());
+  const [endDate, setEndDate] = useState(getPastDate(3));
+  
+  // Nouveaux états de comparaison et de température
+  const [comparisonPeriod, setComparisonPeriod] = useState('1991-2020');
+  const [tempType, setTempType] = useState('mean'); // 'mean', 'min', 'max'
+
+  // États des données (Stockage brut pour éviter de recharger l'API si on change juste le type de température)
+  const [apiData, setApiData] = useState(null);
+  
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [metrics, setMetrics] = useState(null);
+  const [refMetrics, setRefMetrics] = useState(null);
+  const [stageMetrics, setStageMetrics] = useState([]);
+  const [monthlyChartData, setMonthlyChartData] = useState([]);
+  const [dailyChartData, setDailyChartData] = useState([]);
+
+  const searchCity = async (query) => {
+    setCityQuery(query);
+    if (query.length < 3) {
+      setCityResults([]);
+      setShowCityDropdown(false);
+      return;
+    }
+    setIsSearchingCity(true);
+    try {
+      const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${query}&count=5&language=fr&format=json`);
+      const data = await res.json();
+      if (data.results) {
+        setCityResults(data.results);
+        setShowCityDropdown(true);
+      }
+    } catch (err) {
+      console.error("Erreur géocodage", err);
+    }
+    setIsSearchingCity(false);
+  };
+
+  const selectCity = (city) => {
+    setLat(city.latitude.toString());
+    setLon(city.longitude.toString());
+    const fullName = `${city.name} (${city.admin1 || city.country})`;
+    setCityQuery(fullName);
+    setLocationName(fullName);
+    setShowCityDropdown(false);
+  };
+
+  const fetchWeatherData = async () => {
+    setLoading(true);
+    setError(null);
+    setStationInfo(null);
+    
+    try {
+      // 1. URL pour l'année courante (on récupère max, min, mean)
+      const urlCurrent = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${startDate}&end_date=${endDate}&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum&timezone=Europe/Paris`;
+      
+      // 2. URLs pour la référence
+      const startD = new Date(startDate);
+      const endD = new Date(endDate);
+      const currentYear = startD.getFullYear();
+      let refPromises = [];
+
+      if (comparisonPeriod === 'n-1') {
+        const prevStartStr = new Date(startD.setFullYear(startD.getFullYear() - 1)).toISOString().split('T')[0];
+        const prevEndStr = new Date(endD.setFullYear(endD.getFullYear() - 1)).toISOString().split('T')[0];
+        const urlRef = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${prevStartStr}&end_date=${prevEndStr}&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum&timezone=Europe/Paris`;
+        refPromises.push(fetch(urlRef).then(res => res.ok ? res.json() : null));
+      } else if (comparisonPeriod === '1991-2020') {
+        const url1 = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=1991-01-01&end_date=2005-12-31&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum&timezone=Europe/Paris`;
+        const url2 = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=2006-01-01&end_date=2020-12-31&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum&timezone=Europe/Paris`;
+        refPromises.push(fetch(url1).then(res => res.ok ? res.json() : null));
+        refPromises.push(fetch(url2).then(res => res.ok ? res.json() : null));
+      } else {
+        const years = parseInt(comparisonPeriod, 10);
+        const urlNorm = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${currentYear - years}-01-01&end_date=${currentYear - 1}-12-31&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum&timezone=Europe/Paris`;
+        refPromises.push(fetch(urlNorm).then(res => res.ok ? res.json() : null));
+      }
+
+      const [dataCurrent, ...refDataArray] = await Promise.all([
+        fetch(urlCurrent).then(res => res.ok ? res.json() : null),
+        ...refPromises
+      ]);
+
+      if (!dataCurrent) throw new Error("Erreur lors de la récupération des données météo.");
+
+      setStationInfo({
+        lat: dataCurrent.latitude,
+        lon: dataCurrent.longitude,
+        elevation: dataCurrent.elevation
+      });
+
+      // Stocker les données brutes
+      setApiData({ current: dataCurrent, ref: refDataArray, compPeriod: comparisonPeriod });
+
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Ce UseEffect recalcule tout instantanément si le type de Température change sans faire de requête API !
+  useEffect(() => {
+    if (!apiData) return;
+
+    const dataCurrent = apiData.current;
+    const refDataArray = apiData.ref;
+    const isN1 = apiData.compPeriod === 'n-1';
+    
+    // Clé dynamique pour extraire la température sélectionnée
+    const activeTempKey = `temperature_2m_${tempType}`;
+
+    // 1. Calculer l'agrégat de référence
+    const refStats = {}; 
+    if (isN1 && refDataArray[0] && refDataArray[0].daily) {
+      const pData = refDataArray[0].daily;
+      for (let i = 0; i < pData.time.length; i++) {
+        const mmdd = pData.time[i].substring(5);
+        refStats[mmdd] = {
+          temp: pData[activeTempKey][i],
+          rain: pData.precipitation_sum[i]
+        };
+      }
+    } else {
+      const tempAgg = {};
+      refDataArray.forEach(res => {
+        if (!res || !res.daily) return;
+        for (let i = 0; i < res.daily.time.length; i++) {
+          const mmdd = res.daily.time[i].substring(5);
+          if (!tempAgg[mmdd]) tempAgg[mmdd] = { temp: [], rain: [] };
+          const t = res.daily[activeTempKey][i];
+          const r = res.daily.precipitation_sum[i];
+          if (t !== null && t !== undefined) tempAgg[mmdd].temp.push(t);
+          if (r !== null && r !== undefined) tempAgg[mmdd].rain.push(r);
+        }
+      });
+      for (const [mmdd, vals] of Object.entries(tempAgg)) {
+        refStats[mmdd] = {
+          temp: vals.temp.length > 0 ? vals.temp.reduce((a,b)=>a+b,0) / vals.temp.length : null,
+          rain: vals.rain.length > 0 ? vals.rain.reduce((a,b)=>a+b,0) / vals.rain.length : 0
+        };
+      }
+    }
+
+    // 2. Parcourir l'année en cours et calculer les cumuls
+    let cumulRain = 0, cumulGdd0 = 0, cumulGdd6 = 0;
+    let daysAbove25 = 0, daysBelow0 = 0, vernalizationDays = 0, devernalizationDays = 0;
+    
+    let sumRefRain = 0, sumRefGdd0 = 0, sumRefGdd6 = 0;
+    let curCumulGdd0 = 0, refCumulGdd0 = 0;
+
+    const combinedDaily = [];
+    const monthlyMap = {};
+    const monthNames = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Aoû", "Sep", "Oct", "Nov", "Déc"];
+
+    for (let i = 0; i < dataCurrent.daily.time.length; i++) {
+      const dateStr = dataCurrent.daily.time[i];
+      const mmdd = dateStr.substring(5);
+      const mm = parseInt(dateStr.substring(5, 7), 10) - 1;
+      
+      const currT = dataCurrent.daily[activeTempKey][i];
+      const tmax = dataCurrent.daily.temperature_2m_max[i]; // Tmax toujours requis pour les alertes de stress
+      const tmin = dataCurrent.daily.temperature_2m_min[i]; // Tmin toujours requis pour la vernalisation
+      const currRain = dataCurrent.daily.precipitation_sum[i];
+
+      const refDay = refStats[mmdd] || { temp: null, rain: 0 };
+      
+      // Calculs Cumuls Année en cours
+      if (currT !== null) {
+        cumulGdd0 += Math.max(0, currT - 0);
+        cumulGdd6 += Math.max(0, currT - 6);
+        curCumulGdd0 += Math.max(0, currT - 0);
+      }
+      if (currRain !== null) cumulRain += currRain;
+      
+      // Calculs Stress et Vernalisation
+      if (tmax > 25) daysAbove25++;
+      if (tmin < 0) daysBelow0++;
+      if (i <= 90 && tmin < 5) vernalizationDays++;
+      if (i >= 60 && i <= 120 && tmax > 25) devernalizationDays++;
+
+      // Calculs Cumuls Référence
+      if (refDay.temp !== null) {
+        sumRefGdd0 += Math.max(0, refDay.temp - 0);
+        sumRefGdd6 += Math.max(0, refDay.temp - 6);
+        refCumulGdd0 += Math.max(0, refDay.temp - 0);
+      }
+      sumRefRain += (refDay.rain || 0);
+
+      // Mensuel
+      if (!monthlyMap[mm]) monthlyMap[mm] = { monthName: monthNames[mm], monthNum: mm, currentRain: 0, refRain: 0 };
+      if (currRain !== null) monthlyMap[mm].currentRain += currRain;
+      monthlyMap[mm].refRain += (refDay.rain || 0);
+
+      combinedDaily.push({
+        date: dateStr,
+        temp: currT !== null ? Math.round(currT * 10) / 10 : null,
+        refTemp: refDay.temp !== null ? Math.round(refDay.temp * 10) / 10 : null,
+        cumulGdd0: Math.round(curCumulGdd0),
+        refCumulGdd0: Math.round(refCumulGdd0)
+      });
+    }
+
+    setMetrics({
+      cumulRain: Math.round(cumulRain * 10) / 10,
+      cumulGdd0: Math.round(cumulGdd0),
+      cumulGdd6: Math.round(cumulGdd6),
+      daysAbove25, daysBelow0, vernalizationDays, devernalizationDays
+    });
+
+    setRefMetrics({
+      cumulRain: Math.round(sumRefRain * 10) / 10,
+      cumulGdd0: Math.round(sumRefGdd0),
+      cumulGdd6: Math.round(sumRefGdd6),
+    });
+
+    setDailyChartData(combinedDaily);
+
+    // Stades Phénologiques
+    const stagesComparison = BEET_STAGES.map(stage => {
+      const curDay = combinedDaily.find(d => d.cumulGdd0 >= stage.gdd);
+      const refDay = combinedDaily.find(d => d.refCumulGdd0 >= stage.gdd);
+      let diffDays = null;
+      if (curDay && refDay) {
+        diffDays = Math.round((new Date(curDay.date) - new Date(refDay.date)) / (1000 * 60 * 60 * 24));
+      }
+      return {
+        name: stage.name, gdd: stage.gdd,
+        currentDate: curDay ? curDay.date : null,
+        refDate: refDay ? refDay.date : null,
+        diffDays
+      };
+    });
+    setStageMetrics(stagesComparison);
+
+    const formattedMonthly = Object.values(monthlyMap).sort((a, b) => a.monthNum - b.monthNum).map(m => ({
+      month: m.monthName,
+      Pluie_Année: Math.round(m.currentRain * 10) / 10,
+      Pluie_Ref: Math.round(m.refRain * 10) / 10,
+    }));
+    setMonthlyChartData(formattedMonthly);
+
+  }, [apiData, tempType]); // Se déclenche si les données ou le type de Température changent
+
+  useEffect(() => {
+    fetchWeatherData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const getRefLabel = () => {
+    if (comparisonPeriod === 'n-1') return 'Année N-1';
+    if (comparisonPeriod === '1991-2020') return 'Réf. 1991-2020';
+    return `Normale ${comparisonPeriod} ans`;
+  };
+
+  const renderDelta = (current, compareValue, unit = "") => {
+    if (compareValue == null) return null;
+    const diff = current - compareValue;
+    const isPositive = diff > 0;
+    const color = isPositive ? "text-emerald-700" : (diff < 0 ? "text-rose-700" : "text-slate-600");
+    const bg = isPositive ? "bg-emerald-50" : (diff < 0 ? "bg-rose-50" : "bg-slate-100");
+    const Icon = isPositive ? TrendingUp : (diff < 0 ? TrendingDown : Minus);
+
+    return (
+      <div className={`flex items-center text-xs font-semibold px-2.5 py-1.5 rounded-md ${color} ${bg} w-max border border-${isPositive ? 'emerald-200' : (diff < 0 ? 'rose-200' : 'slate-200')}`}>
+        <Icon size={14} className="mr-1.5" />
+        {isPositive ? "+" : ""}{typeof diff === 'number' && !Number.isInteger(diff) ? diff.toFixed(1) : diff} {unit} vs {getRefLabel()}
+      </div>
+    );
+  };
+
+  const getVernalizationStatus = (vernDays, devernDays) => {
+    const isVernalized = vernDays >= 17;
+    const isDevernalized = devernDays >= 7;
+    if (!isVernalized) return { label: "Faible", desc: "Pas de risque majeur de montaison.", color: "text-emerald-700", bg: "bg-emerald-100" };
+    if (isVernalized && isDevernalized) return { label: "Modéré", desc: "Plante vernalisée puis dévernalisée. Le risque est atténué.", color: "text-amber-700", bg: "bg-amber-100" };
+    return { label: "Élevé", desc: "Vernalisée sans dévernalisation : risque de montaison important !", color: "text-rose-700", bg: "bg-rose-100" };
+  };
+
+  const isSpringSowing = checkSowingDateValid(startDate);
+
+  return (
+    <div className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans">
+      <div className="max-w-7xl mx-auto space-y-6">
+        
+        {/* En-tête et Formulaire de paramètres */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+          <div className="flex items-center gap-3 mb-2">
+            <Sprout className="text-emerald-600 w-8 h-8" />
+            <h1 className="text-2xl font-bold text-slate-800">AgroMétéo Betteraves</h1>
+          </div>
+          <p className="text-slate-500 text-sm md:text-base">Analyse climatique personnalisée pour la culture betteravière.</p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mt-6">
+            <div className="md:col-span-2 relative">
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Ville ou Commune</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+                <input 
+                  type="text" 
+                  value={cityQuery}
+                  onChange={(e) => searchCity(e.target.value)}
+                  placeholder="Rechercher une ville..."
+                  className="pl-10 w-full rounded-lg border-slate-300 border p-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                />
+              </div>
+              {showCityDropdown && cityResults.length > 0 && (
+                <div className="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-lg border border-slate-200 max-h-60 overflow-y-auto">
+                  {cityResults.map((city, idx) => (
+                    <div 
+                      key={idx} 
+                      onClick={() => selectCity(city)}
+                      className="px-4 py-3 hover:bg-emerald-50 cursor-pointer flex flex-col border-b border-slate-50 last:border-0"
+                    >
+                      <span className="font-medium text-slate-800">{city.name}</span>
+                      <span className="text-xs text-slate-500">{city.admin1 ? city.admin1 + ', ' : ''}{city.country}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="md:col-span-1">
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Date début</label>
+              <div className="relative">
+                <Calendar className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+                <input 
+                  type="date" 
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="pl-10 w-full rounded-lg border-slate-300 border p-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                />
+              </div>
+            </div>
+            <div className="md:col-span-1">
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Date fin</label>
+              <div className="relative">
+                <Calendar className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+                <input 
+                  type="date" 
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="pl-10 w-full rounded-lg border-slate-300 border p-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                />
+              </div>
+            </div>
+            <div className="md:col-span-1">
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Comparaison avec</label>
+              <select 
+                value={comparisonPeriod}
+                onChange={(e) => setComparisonPeriod(e.target.value)}
+                className="w-full rounded-lg border-slate-300 border p-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-white h-[42px]"
+              >
+                <option value="1991-2020">Réf. 1991-2020</option>
+                <option value="10">10 dernières années</option>
+                <option value="5">5 dernières années</option>
+                <option value="n-1">Année N-1</option>
+              </select>
+            </div>
+            <div className="md:col-span-1">
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Temp. analysée</label>
+              <select 
+                value={tempType}
+                onChange={(e) => setTempType(e.target.value)}
+                className="w-full rounded-lg border-slate-300 border p-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-white h-[42px]"
+              >
+                <option value="mean">Moyenne (Tmean)</option>
+                <option value="min">Minimale (Tmin)</option>
+                <option value="max">Maximale (Tmax)</option>
+              </select>
+            </div>
+          </div>
+          
+          <div className="mt-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-slate-100 pt-5">
+            <div className="flex-1">
+              {stationInfo && (
+                <div className="inline-flex items-center gap-3 text-sm bg-indigo-50 p-3 rounded-lg border border-indigo-100 shadow-sm w-full sm:w-auto">
+                  <div className="bg-indigo-100 p-1.5 rounded-md">
+                    <MapPin className="w-5 h-5 text-indigo-700 shrink-0" />
+                  </div>
+                  <div>
+                    <strong className="text-indigo-900 block mb-0.5">Lieu ciblé : {locationName}</strong>
+                    <span className="text-indigo-700/80 text-xs block">
+                      Point du modèle météo le plus proche — Lat: {Math.abs(stationInfo.lat).toFixed(3)}°{stationInfo.lat >= 0 ? 'N' : 'S'} / Lon: {Math.abs(stationInfo.lon).toFixed(3)}°{stationInfo.lon >= 0 ? 'E' : 'W'} / Altitude : {stationInfo.elevation}m
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            <button 
+              onClick={fetchWeatherData}
+              disabled={loading}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-6 py-3 rounded-lg transition-colors flex items-center justify-center disabled:opacity-70 shadow-sm shrink-0"
+            >
+              {loading ? "Calcul en cours..." : "Actualiser l'analyse"}
+            </button>
+          </div>
+        </div>
+
+        {error && (
+          <div className="bg-rose-50 text-rose-700 p-4 rounded-xl border border-rose-200 flex items-center shadow-sm">
+            <AlertTriangle className="mr-3 w-6 h-6 shrink-0" /> <span className="font-medium">{error}</span>
+          </div>
+        )}
+
+        {}
+        {metrics && !loading && (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              
+              <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-slate-500 text-sm font-medium uppercase tracking-wide">Cumul Pluie</p>
+                    <h3 className="text-3xl font-bold text-slate-800 mt-1">{metrics.cumulRain} <span className="text-lg font-medium text-slate-400">mm</span></h3>
+                  </div>
+                  <div className="p-3 bg-blue-50 rounded-xl"><CloudRain className="text-blue-500" /></div>
+                </div>
+                <div className="mt-4">{refMetrics && renderDelta(metrics.cumulRain, refMetrics.cumulRain, "mm")}</div>
+              </div>
+
+              <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-slate-500 text-sm font-medium uppercase tracking-wide">GDD (Base 0)</p>
+                    <h3 className="text-3xl font-bold text-slate-800 mt-1">{metrics.cumulGdd0} <span className="text-lg font-medium text-slate-400">°C</span></h3>
+                  </div>
+                  <div className="p-3 bg-amber-50 rounded-xl"><Thermometer className="text-amber-500" /></div>
+                </div>
+                <div className="mt-4">{refMetrics && renderDelta(metrics.cumulGdd0, refMetrics.cumulGdd0, "°C")}</div>
+              </div>
+
+              <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-slate-500 text-sm font-medium uppercase tracking-wide">GDD (Base 6)</p>
+                    <h3 className="text-3xl font-bold text-slate-800 mt-1">{metrics.cumulGdd6} <span className="text-lg font-medium text-slate-400">°C</span></h3>
+                  </div>
+                  <div className="p-3 bg-rose-50 rounded-xl"><Thermometer className="text-rose-500" /></div>
+                </div>
+                <div className="mt-4">{refMetrics && renderDelta(metrics.cumulGdd6, refMetrics.cumulGdd6, "°C")}</div>
+              </div>
+
+              <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                  <p className="text-slate-500 text-sm font-medium uppercase tracking-wide mb-4">Jours de Stress Thermique</p>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between bg-amber-50 px-3 py-2 rounded-lg border border-amber-100">
+                      <div className="flex items-center text-amber-900 font-medium">
+                        <Sun className="w-4 h-4 text-amber-500 mr-2"/> Jours (Tmax {'>'} 25°C)
+                      </div>
+                      <span className="font-bold text-amber-700">{metrics.daysAbove25}</span>
+                    </div>
+                    <div className="flex items-center justify-between bg-blue-50 px-3 py-2 rounded-lg border border-blue-100">
+                      <div className="flex items-center text-blue-900 font-medium">
+                        <Snowflake className="w-4 h-4 text-blue-500 mr-2"/> Jours (Tmin {'<'} 0°C)
+                      </div>
+                      <span className="font-bold text-blue-700">{metrics.daysBelow0}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              
+              {!isSpringSowing ? (
+                <div className="bg-slate-800 p-6 rounded-2xl text-white shadow-sm col-span-full flex items-start">
+                  <Info className="w-6 h-6 mr-4 shrink-0 text-amber-400 mt-1" />
+                  <div>
+                    <h3 className="font-bold text-lg mb-1">Indicateurs de développement masqués</h3>
+                    <p className="text-slate-300 leading-relaxed">
+                      La date de début sélectionnée (<strong className="text-white">{new Date(startDate).toLocaleDateString('fr-FR')}</strong>) n'est pas comprise entre le 15 février et le 15 mai. <br/>
+                      Les calculs de risque de <strong>montaison (vernalisation)</strong> et l'évolution des <strong>stades phénologiques</strong> ne sont calibrés et affichés que pour un cycle de semis de printemps classique.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 lg:col-span-1">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex items-center gap-2">
+                        <div className="p-2 bg-indigo-50 rounded-lg"><AlertTriangle className="text-indigo-600 w-5 h-5" /></div>
+                        <h3 className="font-bold text-slate-800">Montaison</h3>
+                      </div>
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${getVernalizationStatus(metrics.vernalizationDays, metrics.devernalizationDays).bg} ${getVernalizationStatus(metrics.vernalizationDays, metrics.devernalizationDays).color}`}>
+                        Risque {getVernalizationStatus(metrics.vernalizationDays, metrics.devernalizationDays).label}
+                      </span>
+                    </div>
+                    
+                    <div className="flex flex-col gap-3 mb-4">
+                      <div className={`flex items-center justify-between rounded-xl p-3 border ${metrics.vernalizationDays >= 17 ? 'bg-indigo-50 border-indigo-200' : 'bg-slate-50 border-slate-200'}`}>
+                        <div>
+                          <span className="block text-sm text-slate-600 font-semibold mb-0.5">Vernalisation (Tmin{'<'}5°C)</span>
+                          <span className="text-xs text-slate-400">Semis à J+90</span>
+                        </div>
+                        <span className={`text-xl font-bold ${metrics.vernalizationDays >= 17 ? 'text-indigo-700' : 'text-slate-700'}`}>{metrics.vernalizationDays}<span className="text-sm text-slate-400 font-medium">/17j</span></span>
+                      </div>
+                      
+                      <div className={`flex items-center justify-between rounded-xl p-3 border ${metrics.devernalizationDays >= 7 ? 'bg-amber-50 border-amber-200' : 'bg-slate-50 border-slate-200'}`}>
+                        <div>
+                          <span className="block text-sm text-slate-600 font-semibold mb-0.5">Dévernalisation (Tmax{'>'}25°C)</span>
+                          <span className="text-xs text-slate-400">J+60 à J+120</span>
+                        </div>
+                        <span className={`text-xl font-bold ${metrics.devernalizationDays >= 7 ? 'text-amber-600' : 'text-slate-700'}`}>{metrics.devernalizationDays}<span className="text-sm text-slate-400 font-medium">/7j</span></span>
+                      </div>
+                    </div>
+                    <p className="text-xs font-medium text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100">{getVernalizationStatus(metrics.vernalizationDays, metrics.devernalizationDays).desc}</p>
+                  </div>
+
+                  <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 lg:col-span-2">
+                    <h3 className="font-bold text-slate-800 mb-4 flex items-center">
+                      <div className="p-2 bg-emerald-50 rounded-lg mr-3"><Flag className="w-5 h-5 text-emerald-600" /></div>
+                      Stades Phénologiques (Base 0 via T{tempType})
+                    </h3>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm text-left text-slate-600">
+                        <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
+                          <tr>
+                            <th className="px-4 py-3 font-semibold rounded-tl-lg">Stade</th>
+                            <th className="px-4 py-3 font-semibold text-center">Seuil GDD</th>
+                            <th className="px-4 py-3 font-semibold">Année Actuelle</th>
+                            <th className="px-4 py-3 font-semibold">{getRefLabel()}</th>
+                            <th className="px-4 py-3 font-semibold rounded-tr-lg">Écart vs Référence</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {stageMetrics.map((stage, idx) => (
+                            <tr key={idx} className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
+                              <td className="px-4 py-3 font-medium text-slate-800">{stage.name}</td>
+                              <td className="px-4 py-3 text-center text-emerald-600 font-semibold bg-emerald-50/30">{stage.gdd} °C</td>
+                              <td className="px-4 py-3">
+                                {stage.currentDate ? (
+                                  <span className="flex items-center text-slate-700"><Calendar className="w-4 h-4 mr-2 text-slate-400" /> {stage.currentDate}</span>
+                                ) : <span className="text-slate-400 italic">Non atteint</span>}
+                              </td>
+                              <td className="px-4 py-3">
+                                {stage.refDate ? (
+                                  <span className="flex items-center text-slate-500"><Calendar className="w-4 h-4 mr-2 text-slate-300" /> {stage.refDate}</span>
+                                ) : <span className="text-slate-400 italic">Non atteint</span>}
+                              </td>
+                              <td className="px-4 py-3">
+                                {stage.diffDays !== null ? (
+                                  <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-bold ${stage.diffDays < 0 ? 'bg-emerald-100 text-emerald-700' : (stage.diffDays > 0 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-700')}`}>
+                                    <Clock className="w-3 h-3 mr-1" />
+                                    {stage.diffDays < 0 ? `Avance ${Math.abs(stage.diffDays)} j` : (stage.diffDays > 0 ? `Retard ${stage.diffDays} j` : "À l'heure")}
+                                  </span>
+                                ) : <span className="text-slate-300">-</span>}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-2">
+              
+              {/* Graphique GDD */}
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="font-bold text-slate-800 flex items-center">
+                    <div className="p-2 bg-amber-50 rounded-lg mr-3"><TrendingUp className="w-5 h-5 text-amber-500" /></div>
+                    Cumul Températures (Base 0 via T{tempType})
+                  </h3>
+                  <button onClick={() => exportChartAsPNG('chart-gdd', 'Comparatif_GDD')} className="text-slate-400 hover:text-emerald-600 transition-colors p-2 hover:bg-emerald-50 rounded-lg" title="Télécharger le graphique">
+                    <Download className="w-5 h-5" />
+                  </button>
+                </div>
+                <div id="chart-gdd" className="h-80 bg-white">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={dailyChartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                      <XAxis dataKey="date" tick={{fontSize: 12, fill: '#64748b'}} tickFormatter={(val) => val.substring(5)} axisLine={false} tickLine={false} dy={10} />
+                      <YAxis tick={{fontSize: 12, fill: '#64748b'}} axisLine={false} tickLine={false} dx={-10} />
+                      <RechartsTooltip 
+                        contentStyle={{borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}}
+                        labelFormatter={(label) => `Date: ${label}`}
+                      />
+                      <Legend wrapperStyle={{fontSize: '13px', paddingTop: '20px'}} />
+                      <Line type="monotone" name="Année sélectionnée (°C)" dataKey="cumulGdd0" stroke="#f59e0b" strokeWidth={3} dot={false} connectNulls />
+                      <Line type="monotone" name={`Référence : ${getRefLabel()} (°C)`} dataKey="refCumulGdd0" stroke={comparisonPeriod === 'n-1' ? '#a855f7' : '#94a3b8'} strokeWidth={2} strokeDasharray={comparisonPeriod === 'n-1' ? "0" : "5 5"} dot={false} connectNulls />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Graphique Pluie */}
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="font-bold text-slate-800 flex items-center">
+                    <div className="p-2 bg-blue-50 rounded-lg mr-3"><CloudRain className="w-5 h-5 text-blue-500" /></div>
+                    Pluviométrie Mensuelle
+                  </h3>
+                  <button onClick={() => exportChartAsPNG('chart-pluie', 'Pluviometrie_Mensuelle')} className="text-slate-400 hover:text-emerald-600 transition-colors p-2 hover:bg-emerald-50 rounded-lg" title="Télécharger le graphique">
+                    <Download className="w-5 h-5" />
+                  </button>
+                </div>
+                <div id="chart-pluie" className="h-80 bg-white">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={monthlyChartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                      <XAxis dataKey="month" tick={{fontSize: 12, fill: '#64748b'}} axisLine={false} tickLine={false} dy={10} />
+                      <YAxis tick={{fontSize: 12, fill: '#64748b'}} axisLine={false} tickLine={false} dx={-10} />
+                      <RechartsTooltip 
+                        contentStyle={{borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}}
+                        formatter={(value) => [`${value} mm`, '']}
+                      />
+                      <Legend wrapperStyle={{fontSize: '13px', paddingTop: '20px'}} />
+                      <Bar name="Pluie Année (mm)" dataKey="Pluie_Année" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={20} />
+                      <Bar name={`Pluie ${getRefLabel()} (mm)`} dataKey="Pluie_Ref" fill={comparisonPeriod === 'n-1' ? '#a855f7' : '#cbd5e1'} radius={[4, 4, 0, 0]} barSize={20} />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+              
+              {/* Graphique Température */}
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 lg:col-span-2">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="font-bold text-slate-800 flex items-center">
+                    <div className="p-2 bg-rose-50 rounded-lg mr-3"><Thermometer className="w-5 h-5 text-rose-500" /></div>
+                    Évolution de la Température {tempType === 'mean' ? 'Moyenne' : (tempType === 'min' ? 'Minimale' : 'Maximale')} (°C)
+                  </h3>
+                  <button onClick={() => exportChartAsPNG('chart-temp', 'Evolution_Temperatures')} className="text-slate-400 hover:text-emerald-600 transition-colors p-2 hover:bg-emerald-50 rounded-lg" title="Télécharger le graphique">
+                    <Download className="w-5 h-5" />
+                  </button>
+                </div>
+                <div id="chart-temp" className="h-72 bg-white">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart data={dailyChartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                      <XAxis dataKey="date" tick={{fontSize: 12, fill: '#64748b'}} tickFormatter={(val) => val.substring(5)} axisLine={false} tickLine={false} dy={10} />
+                      <YAxis tick={{fontSize: 12, fill: '#64748b'}} axisLine={false} tickLine={false} dx={-10} />
+                      <RechartsTooltip 
+                        contentStyle={{borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}}
+                        labelFormatter={(label) => `Date: ${label}`}
+                      />
+                      <Legend wrapperStyle={{fontSize: '13px', paddingTop: '20px'}} />
+                      <Line type="monotone" name="Année sélectionnée (°C)" dataKey="temp" stroke="#10b981" strokeWidth={3} dot={false} connectNulls />
+                      <Line type="monotone" name={`Référence : ${getRefLabel()} (°C)`} dataKey="refTemp" stroke={comparisonPeriod === 'n-1' ? '#a855f7' : '#94a3b8'} strokeWidth={2} strokeDasharray={comparisonPeriod === 'n-1' ? "0" : "5 5"} dot={false} connectNulls />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
