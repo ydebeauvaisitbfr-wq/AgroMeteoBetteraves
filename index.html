@@ -5,24 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgroMétéo Betteraves</title>
     
-    <!-- Tailwind CSS pour le style -->
+    <!-- Icônes pour le navigateur et les raccourcis smartphone (Apple Touch / PWA) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' rx='40' fill='%231e293b'/%3E%3Ccircle cx='145' cy='55' r='24' fill='%23fbbf24'/%3E%3Cpath d='M120 70 A 18 18 0 0 1 156 70 A 24 24 0 0 1 156 118 L 84 118 A 24 24 0 0 1 84 70 A 24 24 0 0 1 120 70 Z' fill='%23e2e8f0' opacity='0.95'/%3E%3Cpath d='M 0 150 Q 100 135 200 150 L 200 200 L 0 200 Z' fill='%233f2e28'/%3E%3Cpath d='M 75 145 C 75 165 95 185 100 195 C 105 185 125 165 125 145 Z' fill='%23be123c'/%3E%3Cellipse cx='100' cy='145' rx='25' ry='6' fill='%239f1239'/%3E%3Cpath d='M 100 145 C 90 100 50 90 40 85 C 60 85 90 110 100 145 Z' fill='%2310b981'/%3E%3Cpath d='M 100 145 C 110 100 150 90 160 85 C 140 85 110 110 100 145 Z' fill='%2310b981'/%3E%3Cpath d='M 100 145 C 95 90 100 50 100 45 C 105 50 110 90 100 145 Z' fill='%23059669'/%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' rx='40' fill='%231e293b'/%3E%3Ccircle cx='145' cy='55' r='24' fill='%23fbbf24'/%3E%3Cpath d='M120 70 A 18 18 0 0 1 156 70 A 24 24 0 0 1 156 118 L 84 118 A 24 24 0 0 1 84 70 A 24 24 0 0 1 120 70 Z' fill='%23e2e8f0' opacity='0.95'/%3E%3Cpath d='M 0 150 Q 100 135 200 150 L 200 200 L 0 200 Z' fill='%233f2e28'/%3E%3Cpath d='M 75 145 C 75 165 95 185 100 195 C 105 185 125 165 125 145 Z' fill='%23be123c'/%3E%3Cellipse cx='100' cy='145' rx='25' ry='6' fill='%239f1239'/%3E%3Cpath d='M 100 145 C 90 100 50 90 40 85 C 60 85 90 110 100 145 Z' fill='%2310b981'/%3E%3Cpath d='M 100 145 C 110 100 150 90 160 85 C 140 85 110 110 100 145 Z' fill='%2310b981'/%3E%3Cpath d='M 100 145 C 95 90 100 50 100 45 C 105 50 110 90 100 145 Z' fill='%23059669'/%3E%3C/svg%3E">
+
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Babel pour compiler React/JSX directement dans le navigateur -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <!-- Configuration des modules (Imports) -->
     <script type="importmap">
     {
         "imports": {
             "react": "https://esm.sh/react@18.2.0",
             "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
             "lucide-react": "https://esm.sh/lucide-react@0.330.0?deps=react@18.2.0",
-            "recharts": "https://esm.sh/recharts@2.12.0?deps=react@18.2.0,react-dom@18.2.0"
+            "recharts": "https://esm.sh/recharts@2.12.0?deps=react@18.2.0,react-dom@18.2.0,prop-types@15.8.1,react-is@18.2.0"
         }
     }
     </script>
     <style>
-        body { margin: 0; font-family: sans-serif; background-color: #f8fafc; }
+        body { margin: 0; font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .logo-svg { width: 36px; height: 36px; }
     </style>
 </head>
 <body>
@@ -32,10 +39,12 @@
         import React, { useState, useEffect } from 'react';
         import { createRoot } from 'react-dom/client';
         import { 
-          Thermometer, CloudRain, Sun, Snowflake, Sprout, AlertTriangle, Calendar, MapPin, TrendingUp, TrendingDown, Minus, Search, Download, Flag, Clock, Info
+          Thermometer, CloudRain, Sun, Snowflake, Sprout, AlertTriangle, Calendar, MapPin, 
+          TrendingUp, TrendingDown, Minus, Search, Download, Flag, Clock, Info, X, PlusCircle, Star
         } from 'lucide-react';
         import { 
-          ResponsiveContainer, ComposedChart, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip, Legend, Line, Bar 
+          ResponsiveContainer, ComposedChart, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip, 
+          Legend, Line, Bar
         } from 'recharts';
 
         const BEET_STAGES = [
@@ -71,7 +80,6 @@
             a.href = canvas.toDataURL("image/png");
             a.click();
           };
-          
           img.src = "data:image/svg+xml;base64," + window.btoa(unescape(encodeURIComponent(svgData)));
         };
 
@@ -81,9 +89,15 @@
           return date.toISOString().split('T')[0];
         };
 
+        const getFutureDate = (daysAhead) => {
+          const date = new Date();
+          date.setDate(date.getDate() + daysAhead);
+          return date.toISOString().split('T')[0];
+        };
+
         const getDefaultSowingDate = () => {
           const date = new Date();
-          date.setMonth(2); // Mars (0-indexed)
+          date.setMonth(2); // Mars
           date.setDate(15);
           return date.toISOString().split('T')[0];
         };
@@ -91,122 +105,209 @@
         const checkSowingDateValid = (dateString) => {
           if (!dateString) return false;
           const date = new Date(dateString);
-          const month = date.getMonth() + 1; // 1 to 12
+          const month = date.getMonth() + 1;
           const day = date.getDate();
-
           if (month === 2 && day >= 15) return true;
           if (month === 3 || month === 4) return true;
           if (month === 5 && day <= 15) return true;
           return false;
         };
 
-        function AgroMeteoApp() {
-          // États de localisation
-          const [cityQuery, setCityQuery] = useState('Amiens (Hauts-de-France)');
-          const [locationName, setLocationName] = useState('Amiens (Hauts-de-France)');
-          const [cityResults, setCityResults] = useState([]);
-          const [isSearchingCity, setIsSearchingCity] = useState(false);
-          const [showCityDropdown, setShowCityDropdown] = useState(false);
-          const [stationInfo, setStationInfo] = useState(null);
-          
-          // États des paramètres
-          const [lat, setLat] = useState('49.894');
-          const [lon, setLon] = useState('2.295');
-          const [startDate, setStartDate] = useState(getDefaultSowingDate());
-          const [endDate, setEndDate] = useState(getPastDate(3));
-          
-          // Comparaison et de température
-          const [comparisonPeriod, setComparisonPeriod] = useState('1991-2020');
-          const [tempType, setTempType] = useState('mean'); // 'mean', 'min', 'max'
+        const fetchOpenMeteo = async (url) => {
+          const res = await fetch(url);
+          const json = await res.json();
+          if (json.error) throw new Error(`API Météo: ${json.reason}`);
+          if (!res.ok) throw new Error(`Erreur réseau (${res.status})`);
+          return json;
+        };
 
-          // États des données 
+        const fetchOpenMeteoStitched = async (lat, lon, start, end) => {
+          const today = new Date();
+          const archiveBoundary = new Date(today);
+          archiveBoundary.setDate(today.getDate() - 5); 
+          const archiveEndStr = archiveBoundary.toISOString().split('T')[0];
+          
+          const startD = new Date(start);
+          const endD = new Date(end);
+          
+          let archData = null;
+          let foreData = null;
+          
+          if (startD <= archiveBoundary) {
+            const fetchEnd = endD < archiveBoundary ? end : archiveEndStr;
+            const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${start}&end_date=${fetchEnd}&hourly=temperature_2m,relative_humidity_2m&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,shortwave_radiation_sum,et0_fao_evapotranspiration&timezone=Europe/Paris`;
+            archData = await fetchOpenMeteo(url);
+          }
+          
+          if (endD > archiveBoundary) {
+            const fetchStart = startD > archiveBoundary ? start : getPastDate(4);
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&start_date=${fetchStart}&end_date=${end}&hourly=temperature_2m,relative_humidity_2m&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,shortwave_radiation_sum,et0_fao_evapotranspiration&timezone=Europe/Paris`;
+            foreData = await fetchOpenMeteo(url);
+          }
+          
+          if (archData && !foreData) return archData;
+          if (!archData && foreData) return foreData;
+          
+          const mergedDaily = {};
+          Object.keys(archData.daily).forEach(key => {
+            mergedDaily[key] = [...archData.daily[key], ...foreData.daily[key]];
+          });
+          
+          const mergedHourly = {};
+          Object.keys(archData.hourly).forEach(key => {
+            mergedHourly[key] = [...archData.hourly[key], ...foreData.hourly[key]];
+          });
+          
+          return {
+            latitude: archData.latitude,
+            longitude: archData.longitude,
+            elevation: archData.elevation,
+            daily: mergedDaily,
+            hourly: mergedHourly
+          };
+        };
+
+        function AgroMeteoApp() {
+          const [isCompareMode, setIsCompareMode] = useState(false);
+          
+          const [cityQuery1, setCityQuery1] = useState('Amiens (Hauts-de-France)');
+          const [locName1, setLocName1] = useState('Amiens (Hauts-de-France)');
+          const [lat1, setLat1] = useState('49.894');
+          const [lon1, setLon1] = useState('2.295');
+          const [stationInfo1, setStationInfo1] = useState(null);
+          
+          const [cityQuery2, setCityQuery2] = useState('Reims (Grand Est)');
+          const [locName2, setLocName2] = useState('Reims (Grand Est)');
+          const [lat2, setLat2] = useState('49.258');
+          const [lon2, setLon2] = useState('4.031');
+          const [stationInfo2, setStationInfo2] = useState(null);
+
+          const [searchResults, setSearchResults] = useState([]);
+          const [activeSearchIdx, setActiveSearchIdx] = useState(null);
+
+          // Fait appel au localStorage pour récupérer les sites sauvegardés
+          const [savedSites, setSavedSites] = useState(() => {
+            try {
+              const item = window.localStorage.getItem('agrometeo_saved_sites');
+              return item ? JSON.parse(item) : [];
+            } catch (error) {
+              console.warn("Erreur lecture LocalStorage", error);
+              return [];
+            }
+          });
+
+          const [startDate, setStartDate] = useState(getDefaultSowingDate());
+          const [endDate, setEndDate] = useState(getFutureDate(7));
+          
+          const [comparisonPeriod, setComparisonPeriod] = useState('1991-2020');
+          const [tempType, setTempType] = useState('mean'); 
+
           const [apiData, setApiData] = useState(null);
           const [loading, setLoading] = useState(false);
           const [error, setError] = useState(null);
-          const [metrics, setMetrics] = useState(null);
+          
+          const [metrics1, setMetrics1] = useState(null);
+          const [metrics2, setMetrics2] = useState(null);
           const [refMetrics, setRefMetrics] = useState(null);
+          
           const [stageMetrics, setStageMetrics] = useState([]);
           const [monthlyChartData, setMonthlyChartData] = useState([]);
           const [dailyChartData, setDailyChartData] = useState([]);
 
-          const searchCity = async (query) => {
-            setCityQuery(query);
+          const toggleSaveSite = () => {
+            const isCurrentlySaved = savedSites.some(site => site.lat === lat1 && site.lon === lon1);
+            let newSites;
+            if (isCurrentlySaved) {
+              newSites = savedSites.filter(site => !(site.lat === lat1 && site.lon === lon1));
+            } else {
+              newSites = [...savedSites, { name: locName1.split(' (')[0], fullName: locName1, lat: lat1, lon: lon1 }];
+            }
+            setSavedSites(newSites);
+            window.localStorage.setItem('agrometeo_saved_sites', JSON.stringify(newSites));
+          };
+
+          const loadSavedSite = (site) => {
+            setLat1(site.lat);
+            setLon1(site.lon);
+            setCityQuery1(site.fullName);
+            setLocName1(site.fullName);
+          };
+
+          const handleSearchInput = async (query, stationIdx) => {
+            if (stationIdx === 1) setCityQuery1(query);
+            else setCityQuery2(query);
+            
             if (query.length < 3) {
-              setCityResults([]);
-              setShowCityDropdown(false);
+              setSearchResults([]);
+              setActiveSearchIdx(null);
               return;
             }
-            setIsSearchingCity(true);
+            
+            setActiveSearchIdx(stationIdx);
             try {
               const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${query}&count=5&language=fr&format=json`);
               const data = await res.json();
-              if (data.results) {
-                setCityResults(data.results);
-                setShowCityDropdown(true);
-              }
+              if (data.results) setSearchResults(data.results);
             } catch (err) {
               console.error("Erreur géocodage", err);
             }
-            setIsSearchingCity(false);
           };
 
-          const selectCity = (city) => {
-            setLat(city.latitude.toString());
-            setLon(city.longitude.toString());
+          const selectCity = (city, stationIdx) => {
             const fullName = `${city.name} (${city.admin1 || city.country})`;
-            setCityQuery(fullName);
-            setLocationName(fullName);
-            setShowCityDropdown(false);
+            if (stationIdx === 1) {
+              setLat1(city.latitude.toString());
+              setLon1(city.longitude.toString());
+              setCityQuery1(fullName);
+              setLocName1(fullName);
+            } else {
+              setLat2(city.latitude.toString());
+              setLon2(city.longitude.toString());
+              setCityQuery2(fullName);
+              setLocName2(fullName);
+            }
+            setSearchResults([]);
+            setActiveSearchIdx(null);
           };
 
           const fetchWeatherData = async () => {
             setLoading(true);
             setError(null);
-            setStationInfo(null);
             
             try {
-              // 1. URL courante
-              const urlCurrent = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${startDate}&end_date=${endDate}&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum&timezone=Europe/Paris`;
-              
-              // 2. URLs pour la référence
+              let promises = [fetchOpenMeteoStitched(lat1, lon1, startDate, endDate)];
+              if (isCompareMode) promises.push(fetchOpenMeteoStitched(lat2, lon2, startDate, endDate));
+              else promises.push(Promise.resolve(null)); 
+
               const startD = new Date(startDate);
               const endD = new Date(endDate);
               const currentYear = startD.getFullYear();
               let refPromises = [];
 
               if (comparisonPeriod === 'n-1') {
-                const prevStartStr = new Date(startD.setFullYear(startD.getFullYear() - 1)).toISOString().split('T')[0];
-                const prevEndStr = new Date(endD.setFullYear(endD.getFullYear() - 1)).toISOString().split('T')[0];
-                const urlRef = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${prevStartStr}&end_date=${prevEndStr}&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum&timezone=Europe/Paris`;
-                refPromises.push(fetch(urlRef).then(res => res.ok ? res.json() : null));
+                const pS = new Date(startD.setFullYear(startD.getFullYear() - 1)).toISOString().split('T')[0];
+                const pE = new Date(endD.setFullYear(endD.getFullYear() - 1)).toISOString().split('T')[0];
+                refPromises.push(fetchOpenMeteo(`https://archive-api.open-meteo.com/v1/archive?latitude=${lat1}&longitude=${lon1}&start_date=${pS}&end_date=${pE}&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,shortwave_radiation_sum,et0_fao_evapotranspiration&timezone=Europe/Paris`));
               } else if (comparisonPeriod === '1991-2020') {
-                const url1 = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=1991-01-01&end_date=2005-12-31&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum&timezone=Europe/Paris`;
-                const url2 = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=2006-01-01&end_date=2020-12-31&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum&timezone=Europe/Paris`;
-                refPromises.push(fetch(url1).then(res => res.ok ? res.json() : null));
-                refPromises.push(fetch(url2).then(res => res.ok ? res.json() : null));
+                refPromises.push(fetchOpenMeteo(`https://archive-api.open-meteo.com/v1/archive?latitude=${lat1}&longitude=${lon1}&start_date=1991-01-01&end_date=2005-12-31&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,shortwave_radiation_sum,et0_fao_evapotranspiration&timezone=Europe/Paris`));
+                refPromises.push(fetchOpenMeteo(`https://archive-api.open-meteo.com/v1/archive?latitude=${lat1}&longitude=${lon1}&start_date=2006-01-01&end_date=2020-12-31&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,shortwave_radiation_sum,et0_fao_evapotranspiration&timezone=Europe/Paris`));
               } else {
                 const years = parseInt(comparisonPeriod, 10);
-                const urlNorm = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${currentYear - years}-01-01&end_date=${currentYear - 1}-12-31&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum&timezone=Europe/Paris`;
-                refPromises.push(fetch(urlNorm).then(res => res.ok ? res.json() : null));
+                refPromises.push(fetchOpenMeteo(`https://archive-api.open-meteo.com/v1/archive?latitude=${lat1}&longitude=${lon1}&start_date=${currentYear - years}-01-01&end_date=${currentYear - 1}-12-31&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean,precipitation_sum,shortwave_radiation_sum,et0_fao_evapotranspiration&timezone=Europe/Paris`));
               }
 
-              const [dataCurrent, ...refDataArray] = await Promise.all([
-                fetch(urlCurrent).then(res => res.ok ? res.json() : null),
-                ...refPromises
-              ]);
+              const results = await Promise.all([...promises, ...refPromises]);
+              const data1 = results[0];
+              const data2 = results[1];
+              const refDataArray = results.slice(2);
 
-              if (!dataCurrent) throw new Error("Erreur lors de la récupération des données météo.");
+              setStationInfo1({ lat: data1.latitude, lon: data1.longitude, elevation: data1.elevation });
+              if (data2) setStationInfo2({ lat: data2.latitude, lon: data2.longitude, elevation: data2.elevation });
 
-              setStationInfo({
-                lat: dataCurrent.latitude,
-                lon: dataCurrent.longitude,
-                elevation: dataCurrent.elevation
-              });
-
-              setApiData({ current: dataCurrent, ref: refDataArray, compPeriod: comparisonPeriod });
+              setApiData({ current1: data1, current2: data2, ref: refDataArray, compPeriod: comparisonPeriod });
 
             } catch (err) {
-              setError(err.message);
+              setError(`Erreur de connexion Météo : ${err.message}.`);
             } finally {
               setLoading(false);
             }
@@ -214,474 +315,613 @@
 
           useEffect(() => {
             if (!apiData) return;
+            try {
+              const { current1, current2, ref, compPeriod } = apiData;
+              const activeTempKey = `temperature_2m_${tempType}`;
 
-            const dataCurrent = apiData.current;
-            const refDataArray = apiData.ref;
-            const isN1 = apiData.compPeriod === 'n-1';
-            const activeTempKey = `temperature_2m_${tempType}`;
-
-            // 1. Calculer l'agrégat de référence
-            const refStats = {}; 
-            if (isN1 && refDataArray[0] && refDataArray[0].daily) {
-              const pData = refDataArray[0].daily;
-              for (let i = 0; i < pData.time.length; i++) {
-                const mmdd = pData.time[i].substring(5);
-                refStats[mmdd] = {
-                  temp: pData[activeTempKey][i],
-                  rain: pData.precipitation_sum[i]
-                };
-              }
-            } else {
-              const tempAgg = {};
-              refDataArray.forEach(res => {
-                if (!res || !res.daily) return;
-                for (let i = 0; i < res.daily.time.length; i++) {
-                  const mmdd = res.daily.time[i].substring(5);
-                  if (!tempAgg[mmdd]) tempAgg[mmdd] = { temp: [], rain: [] };
-                  const t = res.daily[activeTempKey][i];
-                  const r = res.daily.precipitation_sum[i];
-                  if (t !== null && t !== undefined) tempAgg[mmdd].temp.push(t);
-                  if (r !== null && r !== undefined) tempAgg[mmdd].rain.push(r);
+              const refStats = {};
+              if (compPeriod === 'n-1' && ref[0] && ref[0].daily) {
+                const pData = ref[0].daily;
+                for (let i = 0; i < pData.time.length; i++) {
+                  refStats[pData.time[i].substring(5)] = { 
+                    temp: pData[activeTempKey][i], 
+                    rain: pData.precipitation_sum[i],
+                    rad: pData.shortwave_radiation_sum[i],
+                    et0: pData.et0_fao_evapotranspiration[i]
+                  };
                 }
-              });
-              for (const [mmdd, vals] of Object.entries(tempAgg)) {
-                refStats[mmdd] = {
-                  temp: vals.temp.length > 0 ? vals.temp.reduce((a,b)=>a+b,0) / vals.temp.length : null,
-                  rain: vals.rain.length > 0 ? vals.rain.reduce((a,b)=>a+b,0) / vals.rain.length : 0
+              } else if (ref.length > 0) {
+                const tempAgg = {};
+                ref.forEach(res => {
+                  if (!res || !res.daily) return;
+                  for (let i = 0; i < res.daily.time.length; i++) {
+                    const mmdd = res.daily.time[i].substring(5);
+                    if (!tempAgg[mmdd]) tempAgg[mmdd] = { temp: [], rain: [], rad: [], et0: [] };
+                    const t = res.daily[activeTempKey][i];
+                    const r = res.daily.precipitation_sum[i];
+                    const rad = res.daily.shortwave_radiation_sum[i];
+                    const et0 = res.daily.et0_fao_evapotranspiration[i];
+                    if (t !== null && t !== undefined) tempAgg[mmdd].temp.push(t);
+                    if (r !== null && r !== undefined) tempAgg[mmdd].rain.push(r);
+                    if (rad !== null && rad !== undefined) tempAgg[mmdd].rad.push(rad);
+                    if (et0 !== null && et0 !== undefined) tempAgg[mmdd].et0.push(et0);
+                  }
+                });
+                for (const [mmdd, vals] of Object.entries(tempAgg)) {
+                  refStats[mmdd] = {
+                    temp: vals.temp.length > 0 ? vals.temp.reduce((a,b)=>a+b,0) / vals.temp.length : null,
+                    rain: vals.rain.length > 0 ? vals.rain.reduce((a,b)=>a+b,0) / vals.rain.length : 0,
+                    rad: vals.rad.length > 0 ? vals.rad.reduce((a,b)=>a+b,0) / vals.rad.length : null,
+                    et0: vals.et0.length > 0 ? vals.et0.reduce((a,b)=>a+b,0) / vals.et0.length : null
+                  };
+                }
+              }
+
+              const processMetrics = (data) => {
+                if (!data) return null;
+                let rain = 0, gdd0 = 0, gdd6 = 0, days25 = 0, days0 = 0, vern = 0, devern = 0, sumT = 0, countT = 0;
+                for (let i = 0; i < data.daily.time.length; i++) {
+                  const currT = data.daily[activeTempKey][i];
+                  const tmax = data.daily.temperature_2m_max[i];
+                  const tmin = data.daily.temperature_2m_min[i];
+                  const r = data.daily.precipitation_sum[i];
+
+                  if (currT !== null) {
+                    gdd0 += Math.max(0, currT - 0);
+                    gdd6 += Math.max(0, currT - 6);
+                    sumT += currT; countT++;
+                  }
+                  if (r !== null) rain += r;
+                  if (tmax > 25) days25++;
+                  if (tmin < 0) days0++;
+                  
+                  // Calcul Vernalisation (Tmin < 5°C sur les 90 premiers jours)
+                  if (i <= 90 && tmin < 5) vern++;
+                  // Calcul Dévernalisation (Tmax > 25°C entre J+60 et J+120)
+                  if (i >= 60 && i <= 120 && tmax > 25) devern++;
+                }
+                return { 
+                  rain: Math.round(rain * 10) / 10, gdd0: Math.round(gdd0), gdd6: Math.round(gdd6), 
+                  days25, days0, vern, devern, 
+                  avgTemp: countT > 0 ? (Math.round((sumT / countT) * 10) / 10) : 0 
                 };
-              }
-            }
-
-            // 2. Cumuls
-            let cumulRain = 0, cumulGdd0 = 0, cumulGdd6 = 0;
-            let daysAbove25 = 0, daysBelow0 = 0, vernalizationDays = 0, devernalizationDays = 0;
-            let sumRefRain = 0, sumRefGdd0 = 0, sumRefGdd6 = 0;
-            let curCumulGdd0 = 0, refCumulGdd0 = 0;
-
-            const combinedDaily = [];
-            const monthlyMap = {};
-            const monthNames = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Aoû", "Sep", "Oct", "Nov", "Déc"];
-
-            for (let i = 0; i < dataCurrent.daily.time.length; i++) {
-              const dateStr = dataCurrent.daily.time[i];
-              const mmdd = dateStr.substring(5);
-              const mm = parseInt(dateStr.substring(5, 7), 10) - 1;
-              
-              const currT = dataCurrent.daily[activeTempKey][i];
-              const tmax = dataCurrent.daily.temperature_2m_max[i];
-              const tmin = dataCurrent.daily.temperature_2m_min[i];
-              const currRain = dataCurrent.daily.precipitation_sum[i];
-
-              const refDay = refStats[mmdd] || { temp: null, rain: 0 };
-              
-              if (currT !== null) {
-                cumulGdd0 += Math.max(0, currT - 0);
-                cumulGdd6 += Math.max(0, currT - 6);
-                curCumulGdd0 += Math.max(0, currT - 0);
-              }
-              if (currRain !== null) cumulRain += currRain;
-              
-              if (tmax > 25) daysAbove25++;
-              if (tmin < 0) daysBelow0++;
-              if (i <= 90 && tmin < 5) vernalizationDays++;
-              if (i >= 60 && i <= 120 && tmax > 25) devernalizationDays++;
-
-              if (refDay.temp !== null) {
-                sumRefGdd0 += Math.max(0, refDay.temp - 0);
-                sumRefGdd6 += Math.max(0, refDay.temp - 6);
-                refCumulGdd0 += Math.max(0, refDay.temp - 0);
-              }
-              sumRefRain += (refDay.rain || 0);
-
-              if (!monthlyMap[mm]) monthlyMap[mm] = { monthName: monthNames[mm], monthNum: mm, currentRain: 0, refRain: 0 };
-              if (currRain !== null) monthlyMap[mm].currentRain += currRain;
-              monthlyMap[mm].refRain += (refDay.rain || 0);
-
-              combinedDaily.push({
-                date: dateStr,
-                temp: currT !== null ? Math.round(currT * 10) / 10 : null,
-                refTemp: refDay.temp !== null ? Math.round(refDay.temp * 10) / 10 : null,
-                cumulGdd0: Math.round(curCumulGdd0),
-                refCumulGdd0: Math.round(refCumulGdd0)
-              });
-            }
-
-            setMetrics({
-              cumulRain: Math.round(cumulRain * 10) / 10,
-              cumulGdd0: Math.round(cumulGdd0),
-              cumulGdd6: Math.round(cumulGdd6),
-              daysAbove25, daysBelow0, vernalizationDays, devernalizationDays
-            });
-
-            setRefMetrics({
-              cumulRain: Math.round(sumRefRain * 10) / 10,
-              cumulGdd0: Math.round(sumRefGdd0),
-              cumulGdd6: Math.round(sumRefGdd6),
-            });
-
-            setDailyChartData(combinedDaily);
-
-            const stagesComparison = BEET_STAGES.map(stage => {
-              const curDay = combinedDaily.find(d => d.cumulGdd0 >= stage.gdd);
-              const refDay = combinedDaily.find(d => d.refCumulGdd0 >= stage.gdd);
-              let diffDays = null;
-              if (curDay && refDay) {
-                diffDays = Math.round((new Date(curDay.date) - new Date(refDay.date)) / (1000 * 60 * 60 * 24));
-              }
-              return {
-                name: stage.name, gdd: stage.gdd,
-                currentDate: curDay ? curDay.date : null,
-                refDate: refDay ? refDay.date : null,
-                diffDays
               };
-            });
-            setStageMetrics(stagesComparison);
 
-            const formattedMonthly = Object.values(monthlyMap).sort((a, b) => a.monthNum - b.monthNum).map(m => ({
-              month: m.monthName,
-              Pluie_Année: Math.round(m.currentRain * 10) / 10,
-              Pluie_Ref: Math.round(m.refRain * 10) / 10,
-            }));
-            setMonthlyChartData(formattedMonthly);
+              const m1 = processMetrics(current1);
+              setMetrics1(m1);
+              if (current2) setMetrics2(processMetrics(current2));
 
-          }, [apiData, tempType]);
+              let sumRefRain = 0, sumRefGdd0 = 0, sumRefGdd6 = 0, sumRefT = 0, countRefT = 0;
+              
+              for (let i = 0; i < current1.daily.time.length; i++) {
+                const mmdd = current1.daily.time[i].substring(5);
+                const refDay = refStats[mmdd];
+                
+                if (refDay) {
+                  if (refDay.temp !== null) {
+                    sumRefGdd0 += Math.max(0, refDay.temp - 0);
+                    sumRefGdd6 += Math.max(0, refDay.temp - 6);
+                    sumRefT += refDay.temp; countRefT++;
+                  }
+                  if (refDay.rain !== null && refDay.rain !== undefined) {
+                    sumRefRain += refDay.rain;
+                  }
+                }
+              }
+              
+              setRefMetrics({
+                rain: Math.round(sumRefRain * 10) / 10,
+                gdd0: Math.round(sumRefGdd0),
+                gdd6: Math.round(sumRefGdd6),
+                avgTemp: countRefT > 0 ? (Math.round((sumRefT / countRefT) * 10) / 10) : 0
+              });
 
-          useEffect(() => {
-            fetchWeatherData();
-          }, []);
+              const combinedDaily = [];
+              const monthlyMap = {};
+              const monthNames = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Aoû", "Sep", "Oct", "Nov", "Déc"];
+              let cGdd1 = 0, cGdd2 = 0, cGddRef = 0;
 
-          const getRefLabel = () => {
-            if (comparisonPeriod === 'n-1') return 'Année N-1';
-            if (comparisonPeriod === '1991-2020') return 'Réf. 1991-2020';
-            return `Normale ${comparisonPeriod} ans`;
+              for (let i = 0; i < current1.daily.time.length; i++) {
+                const dateStr = current1.daily.time[i];
+                const mmdd = dateStr.substring(5);
+                const mm = parseInt(mmdd.substring(0, 2), 10) - 1;
+                
+                const t1 = current1.daily[activeTempKey][i];
+                const r1 = current1.daily.precipitation_sum[i];
+                const t2 = current2 ? current2.daily[activeTempKey][i] : null;
+                const r2 = current2 ? current2.daily.precipitation_sum[i] : null;
+                const refDay = refStats[mmdd] || { temp: null, rain: 0 };
+
+                if (t1 !== null) cGdd1 += Math.max(0, t1);
+                if (t2 !== null) cGdd2 += Math.max(0, t2);
+                if (refDay.temp !== null) cGddRef += Math.max(0, refDay.temp);
+
+                if (!monthlyMap[mm]) monthlyMap[mm] = { monthName: monthNames[mm], monthNum: mm, r1: 0, r2: 0, rRef: 0 };
+                if (r1 !== null) monthlyMap[mm].r1 += r1;
+                if (r2 !== null) monthlyMap[mm].r2 += r2;
+                monthlyMap[mm].rRef += refDay.rain;
+
+                const rad1 = current1.daily.shortwave_radiation_sum[i];
+                const rad2 = current2 ? current2.daily.shortwave_radiation_sum[i] : null;
+                const et01 = current1.daily.et0_fao_evapotranspiration[i];
+                const et02 = current2 ? current2.daily.et0_fao_evapotranspiration[i] : null;
+
+                combinedDaily.push({
+                  date: dateStr,
+                  temp1: t1 !== null ? Math.round(t1 * 10) / 10 : null,
+                  temp2: t2 !== null ? Math.round(t2 * 10) / 10 : null,
+                  refTemp: refDay.temp !== null ? Math.round(refDay.temp * 10) / 10 : null,
+                  rain1: r1 !== null ? Math.round(r1 * 10) / 10 : 0,
+                  rain2: r2 !== null ? Math.round(r2 * 10) / 10 : 0,
+                  gdd1: Math.round(cGdd1),
+                  gdd2: Math.round(cGdd2),
+                  gddRef: Math.round(cGddRef),
+                  rad1: rad1 !== null ? Math.round(rad1 * 10) / 10 : null,
+                  rad2: rad2 !== null ? Math.round(rad2 * 10) / 10 : null,
+                  radRef: refDay.rad != null ? Math.round(refDay.rad * 10) / 10 : null,
+                  et01: et01 !== null ? Math.round(et01 * 10) / 10 : null,
+                  et02: et02 !== null ? Math.round(et02 * 10) / 10 : null,
+                  et0Ref: refDay.et0 != null ? Math.round(refDay.et0 * 10) / 10 : null
+                });
+              }
+
+              setDailyChartData(combinedDaily);
+              setMonthlyChartData(Object.values(monthlyMap).sort((a,b) => a.monthNum - b.monthNum).map(m => ({
+                month: m.monthName,
+                Pluie_Stat1: Math.round(m.r1 * 10) / 10,
+                Pluie_Stat2: Math.round(m.r2 * 10) / 10,
+                Pluie_Ref: Math.round(m.rRef * 10) / 10
+              })));
+
+              setStageMetrics(BEET_STAGES.map(stage => {
+                const curDay = combinedDaily.find(d => d.gdd1 >= stage.gdd);
+                let cmpDay = null;
+                if (isCompareMode) cmpDay = combinedDaily.find(d => d.gdd2 >= stage.gdd);
+                else cmpDay = combinedDaily.find(d => d.gddRef >= stage.gdd);
+                
+                let diffDays = null;
+                if (curDay && cmpDay) diffDays = Math.round((new Date(curDay.date) - new Date(cmpDay.date)) / 86400000);
+                return { name: stage.name, gdd: stage.gdd, date1: curDay ? curDay.date : null, dateCmp: cmpDay ? cmpDay.date : null, diffDays };
+              }));
+
+            } catch(e) {
+              setError("Erreur lors du traitement des données: " + e.message);
+            }
+          }, [apiData, tempType, isCompareMode]);
+
+          useEffect(() => { fetchWeatherData(); }, []);
+
+          const isSpringSowing = checkSowingDateValid(startDate);
+          
+          const getCompareLabel = () => {
+            if (isCompareMode) return `Écart vs ${locName2.split('(')[0].trim()}`;
+            if (comparisonPeriod === 'n-1') return 'Écart vs Année N-1';
+            if (comparisonPeriod === '1991-2020') return 'Écart vs Réf. 1991-2020';
+            return `Écart vs Normale ${comparisonPeriod} ans`;
           };
 
-          const renderDelta = (current, compareValue, unit = "") => {
+          const renderDelta = (val1, metrics2Obj, refObj, key, unit) => {
+            let compareValue = null;
+            if (isCompareMode && metrics2Obj) compareValue = metrics2Obj[key];
+            else if (!isCompareMode && refObj) compareValue = refObj[key];
+            
             if (compareValue == null) return null;
-            const diff = current - compareValue;
+            const diff = val1 - compareValue;
             const isPositive = diff > 0;
+            const isZero = diff === 0;
+            
             const color = isPositive ? "text-emerald-700" : (diff < 0 ? "text-rose-700" : "text-slate-600");
             const bg = isPositive ? "bg-emerald-50" : (diff < 0 ? "bg-rose-50" : "bg-slate-100");
+            const border = isPositive ? "border-emerald-200" : (diff < 0 ? "border-rose-200" : "border-slate-200");
             const Icon = isPositive ? TrendingUp : (diff < 0 ? TrendingDown : Minus);
+            
+            const formattedDiff = (typeof diff === 'number' && !Number.isInteger(diff)) ? Math.abs(diff).toFixed(1) : Math.abs(diff);
 
             return (
-              <div className={`flex items-center text-xs font-semibold px-2.5 py-1.5 rounded-md ${color} ${bg} w-max border border-${isPositive ? 'emerald-200' : (diff < 0 ? 'rose-200' : 'slate-200')}`}>
+              <div className={`flex items-center text-xs font-semibold px-2.5 py-1.5 rounded-md ${color} ${bg} w-max border ${border} mt-3`}>
                 <Icon size={14} className="mr-1.5" />
-                {isPositive ? "+" : ""}{typeof diff === 'number' && !Number.isInteger(diff) ? diff.toFixed(1) : diff} {unit} vs {getRefLabel()}
+                {isZero ? "Identique" : `${isPositive ? "+" : "-"}${formattedDiff} ${unit}`}
+                <span className="text-slate-500 font-normal ml-1">({getCompareLabel()})</span>
               </div>
             );
           };
 
-          const getVernalizationStatus = (vernDays, devernDays) => {
-            const isVernalized = vernDays >= 17;
-            const isDevernalized = devernDays >= 7;
-            if (!isVernalized) return { label: "Faible", desc: "Pas de risque majeur de montaison.", color: "text-emerald-700", bg: "bg-emerald-100" };
-            if (isVernalized && isDevernalized) return { label: "Modéré", desc: "Plante vernalisée puis dévernalisée. Le risque est atténué.", color: "text-amber-700", bg: "bg-amber-100" };
-            return { label: "Élevé", desc: "Vernalisée sans dévernalisation : risque de montaison important !", color: "text-rose-700", bg: "bg-rose-100" };
+          const isSaved1 = savedSites.some(s => s.lat === lat1 && s.lon === lon1);
+
+          const exportRawDataToCSV = () => {
+            if (!apiData || !apiData.current1) return;
+            const data1 = apiData.current1.daily;
+            const data2 = apiData.current2 ? apiData.current2.daily : null;
+
+            let csvContent = "Date;T_Moy_Stat1(C);T_Min_Stat1(C);T_Max_Stat1(C);Pluie_Stat1(mm);Rayonnement_Global_Stat1(MJ/m2);Evapotranspiration_ET0_Stat1(mm)";
+            if (isCompareMode && data2) {
+              csvContent += ";T_Moy_Stat2(C);T_Min_Stat2(C);T_Max_Stat2(C);Pluie_Stat2(mm);Rayonnement_Global_Stat2(MJ/m2);Evapotranspiration_ET0_Stat2(mm)";
+            }
+            csvContent += "\r\n";
+
+            for (let i = 0; i < data1.time.length; i++) {
+              const row = [
+                data1.time[i],
+                data1.temperature_2m_mean[i],
+                data1.temperature_2m_min[i],
+                data1.temperature_2m_max[i],
+                data1.precipitation_sum[i],
+                data1.shortwave_radiation_sum[i],
+                data1.et0_fao_evapotranspiration[i]
+              ].map(v => v === null ? "" : v).join(";");
+
+              let fullRow = row;
+              if (isCompareMode && data2) {
+                const row2 = [
+                  data2.temperature_2m_mean[i],
+                  data2.temperature_2m_min[i],
+                  data2.temperature_2m_max[i],
+                  data2.precipitation_sum[i],
+                  data2.shortwave_radiation_sum[i],
+                  data2.et0_fao_evapotranspiration[i]
+                ].map(v => v === null ? "" : v).join(";");
+                fullRow += ";" + row2;
+              }
+              csvContent += fullRow + "\r\n";
+            }
+
+            // Génération UTF-8 formatée pour le tableur Excel (BOM)
+            const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvContent], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute("download", `AgroMeteo_Export_${startDate}_au_${endDate}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
           };
 
-          const isSpringSowing = checkSowingDateValid(startDate);
+          // Vérification pour le graphique journalier de pluie (<= 31 jours)
+          const sDateObj = new Date(startDate);
+          const eDateObj = new Date(endDate);
+          const diffDaysGlobal = Math.ceil(Math.abs(eDateObj - sDateObj) / (1000 * 60 * 60 * 24));
+          const showDailyRain = diffDaysGlobal <= 31;
 
           return (
             <div className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans">
               <div className="max-w-7xl mx-auto space-y-6">
                 
-                {/* Header & Controls */}
+                {/* EN-TÊTE ET FORMULAIRE */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                  <div className="flex items-center gap-3 mb-2">
-                    <Sprout className="text-emerald-600 w-8 h-8" />
-                    <h1 className="text-2xl font-bold text-slate-800">AgroMétéo Betteraves</h1>
-                  </div>
-                  <p className="text-slate-500 text-sm md:text-base">Analyse climatique personnalisée pour la culture betteravière.</p>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mt-6">
-                    <div className="md:col-span-2 relative">
-                      <label className="block text-sm font-semibold text-slate-700 mb-1.5">Ville ou Commune</label>
-                      <div className="relative">
-                        <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
-                        <input 
-                          type="text" 
-                          value={cityQuery}
-                          onChange={(e) => searchCity(e.target.value)}
-                          placeholder="Rechercher une ville..."
-                          className="pl-10 w-full rounded-lg border-slate-300 border p-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-                        />
-                      </div>
-                      {showCityDropdown && cityResults.length > 0 && (
-                        <div className="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-lg border border-slate-200 max-h-60 overflow-y-auto">
-                          {cityResults.map((city, idx) => (
-                            <div 
-                              key={idx} 
-                              onClick={() => selectCity(city)}
-                              className="px-4 py-3 hover:bg-emerald-50 cursor-pointer flex flex-col border-b border-slate-50 last:border-0"
-                            >
-                              <span className="font-medium text-slate-800">{city.name}</span>
-                              <span className="text-xs text-slate-500">{city.admin1 ? city.admin1 + ', ' : ''}{city.country}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <div className="md:col-span-1">
-                      <label className="block text-sm font-semibold text-slate-700 mb-1.5">Date début</label>
-                      <div className="relative">
-                        <Calendar className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
-                        <input 
-                          type="date" 
-                          value={startDate}
-                          onChange={(e) => setStartDate(e.target.value)}
-                          className="pl-10 w-full rounded-lg border-slate-300 border p-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-                        />
-                      </div>
-                    </div>
-                    <div className="md:col-span-1">
-                      <label className="block text-sm font-semibold text-slate-700 mb-1.5">Date fin</label>
-                      <div className="relative">
-                        <Calendar className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
-                        <input 
-                          type="date" 
-                          value={endDate}
-                          onChange={(e) => setEndDate(e.target.value)}
-                          className="pl-10 w-full rounded-lg border-slate-300 border p-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-                        />
-                      </div>
-                    </div>
-                    <div className="md:col-span-1">
-                      <label className="block text-sm font-semibold text-slate-700 mb-1.5">Comparaison avec</label>
-                      <select 
-                        value={comparisonPeriod}
-                        onChange={(e) => setComparisonPeriod(e.target.value)}
-                        className="w-full rounded-lg border-slate-300 border p-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-white h-[42px]"
-                      >
-                        <option value="1991-2020">Réf. 1991-2020</option>
-                        <option value="10">10 dernières années</option>
-                        <option value="5">5 dernières années</option>
-                        <option value="n-1">Année N-1</option>
-                      </select>
-                    </div>
-                    <div className="md:col-span-1">
-                      <label className="block text-sm font-semibold text-slate-700 mb-1.5">Temp. analysée</label>
-                      <select 
-                        value={tempType}
-                        onChange={(e) => setTempType(e.target.value)}
-                        className="w-full rounded-lg border-slate-300 border p-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-white h-[42px]"
-                      >
-                        <option value="mean">Moyenne (Tmean)</option>
-                        <option value="min">Minimale (Tmin)</option>
-                        <option value="max">Maximale (Tmax)</option>
-                      </select>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-3">
+                      {/* Logo SVG Inline stylisé et pro */}
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" className="logo-svg">
+                        <rect width="200" height="200" rx="40" fill="#1e293b"/>
+                        <circle cx="145" cy="55" r="24" fill="#fbbf24"/>
+                        <path d="M120 70 A 18 18 0 0 1 156 70 A 24 24 0 0 1 156 118 L 84 118 A 24 24 0 0 1 84 70 A 24 24 0 0 1 120 70 Z" fill="#e2e8f0" opacity="0.95"/>
+                        <path d="M 0 150 Q 100 135 200 150 L 200 200 L 0 200 Z" fill="#3f2e28"/>
+                        <path d="M 75 145 C 75 165 95 185 100 195 C 105 185 125 165 125 145 Z" fill="#be123c"/>
+                        <ellipse cx="100" cy="145" rx="25" ry="6" fill="#9f1239"/>
+                        <path d="M 100 145 C 90 100 50 90 40 85 C 60 85 90 110 100 145 Z" fill="#10b981"/>
+                        <path d="M 100 145 C 110 100 150 90 160 85 C 140 85 110 110 100 145 Z" fill="#10b981"/>
+                        <path d="M 100 145 C 95 90 100 50 100 45 C 105 50 110 90 100 145 Z" fill="#059669"/>
+                      </svg>
+                      <h1 className="text-2xl font-bold text-slate-800">AgroMétéo Betteraves</h1>
                     </div>
                   </div>
+                  <p className="text-slate-500 text-sm md:text-base">Analyse climatique, pluviométrie et évolution de la culture.</p>
                   
-                  <div className="mt-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-slate-100 pt-5">
-                    <div className="flex-1">
-                      {stationInfo && (
-                        <div className="inline-flex items-center gap-3 text-sm bg-indigo-50 p-3 rounded-lg border border-indigo-100 shadow-sm w-full sm:w-auto">
-                          <div className="bg-indigo-100 p-1.5 rounded-md">
-                            <MapPin className="w-5 h-5 text-indigo-700 shrink-0" />
-                          </div>
-                          <div>
-                            <strong className="text-indigo-900 block mb-0.5">Lieu ciblé : {locationName}</strong>
-                            <span className="text-indigo-700/80 text-xs block">
-                              Point du modèle météo le plus proche — Lat: {Math.abs(stationInfo.lat).toFixed(3)}°{stationInfo.lat >= 0 ? 'N' : 'S'} / Lon: {Math.abs(stationInfo.lon).toFixed(3)}°{stationInfo.lon >= 0 ? 'E' : 'W'} / Altitude : {stationInfo.elevation}m
-                            </span>
-                          </div>
-                        </div>
-                      )}
+                  {/* Sites Sauvegardés */}
+                  {savedSites.length > 0 && (
+                    <div className="mt-4 flex flex-wrap items-center gap-2">
+                      <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mr-1">Favoris :</span>
+                      {savedSites.map((site, idx) => (
+                        <button 
+                          key={idx} 
+                          onClick={() => loadSavedSite(site)}
+                          className="text-xs bg-slate-100 hover:bg-emerald-100 hover:text-emerald-700 text-slate-600 px-3 py-1.5 rounded-lg transition-colors border border-slate-200 hover:border-emerald-200 shadow-sm flex items-center"
+                        >
+                          <MapPin className="w-3 h-3 mr-1 opacity-50" /> {site.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="mt-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="font-bold text-slate-700">Lieu(x) d'analyse</h3>
+                      <button 
+                        onClick={() => setIsCompareMode(!isCompareMode)}
+                        className={`text-sm font-semibold px-3 py-1.5 rounded-lg flex items-center transition-colors ${isCompareMode ? 'bg-rose-100 text-rose-700 hover:bg-rose-200' : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'}`}
+                      >
+                        {isCompareMode ? <><X className="w-4 h-4 mr-1"/> Retirer Comparaison</> : <><PlusCircle className="w-4 h-4 mr-1"/> Comparer 2 Stations</>}
+                      </button>
                     </div>
                     
-                    <button 
-                      onClick={fetchWeatherData}
-                      disabled={loading}
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-6 py-3 rounded-lg transition-colors flex items-center justify-center disabled:opacity-70 shadow-sm shrink-0"
-                    >
-                      {loading ? "Calcul en cours..." : "Actualiser l'analyse"}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Station 1 */}
+                      <div className="relative">
+                        <label className="block text-xs font-bold text-emerald-600 mb-1.5 uppercase">Station 1 (Référence)</label>
+                        <div className="relative">
+                          <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+                          <input 
+                            type="text" value={cityQuery1} onChange={(e) => handleSearchInput(e.target.value, 1)}
+                            className="pl-10 pr-10 w-full rounded-lg border-slate-300 border p-2 focus:ring-emerald-500 bg-white outline-none"
+                          />
+                          <button 
+                            onClick={toggleSaveSite}
+                            title={isSaved1 ? "Retirer des favoris" : "Ajouter aux favoris"}
+                            className="absolute right-2 top-1.5 p-1 hover:bg-slate-100 rounded-md transition-colors"
+                          >
+                            <Star className={`w-4 h-4 ${isSaved1 ? 'fill-amber-400 text-amber-400' : 'text-slate-300 hover:text-amber-400'}`} />
+                          </button>
+                        </div>
+                        {activeSearchIdx === 1 && searchResults.length > 0 && (
+                          <div className="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-xl border border-slate-200 max-h-60 overflow-y-auto">
+                            {searchResults.map((city, idx) => (
+                              <div key={idx} onClick={() => selectCity(city, 1)} className="px-4 py-3 hover:bg-emerald-50 cursor-pointer border-b border-slate-50">
+                                <span className="font-medium">{city.name}</span> <span className="text-xs text-slate-500">{city.admin1}, {city.country}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {stationInfo1 && (
+                          <p className="text-xs text-slate-500 mt-1.5 flex items-center"><MapPin className="w-3 h-3 mr-1"/> {locName1} (Alt: {stationInfo1.elevation}m)</p>
+                        )}
+                      </div>
+
+                      {/* Station 2 */}
+                      {isCompareMode && (
+                        <div className="relative">
+                          <label className="block text-xs font-bold text-indigo-600 mb-1.5 uppercase">Station 2 (Comparaison)</label>
+                          <div className="relative">
+                            <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+                            <input 
+                              type="text" value={cityQuery2} onChange={(e) => handleSearchInput(e.target.value, 2)}
+                              className="pl-10 w-full rounded-lg border-slate-300 border p-2 focus:ring-indigo-500 bg-white outline-none"
+                            />
+                          </div>
+                          {activeSearchIdx === 2 && searchResults.length > 0 && (
+                            <div className="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-xl border border-slate-200 max-h-60 overflow-y-auto">
+                              {searchResults.map((city, idx) => (
+                                <div key={idx} onClick={() => selectCity(city, 2)} className="px-4 py-3 hover:bg-indigo-50 cursor-pointer border-b border-slate-50">
+                                  <span className="font-medium">{city.name}</span> <span className="text-xs text-slate-500">{city.admin1}, {city.country}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {stationInfo2 && (
+                            <p className="text-xs text-slate-500 mt-1.5 flex items-center"><MapPin className="w-3 h-3 mr-1"/> {locName2} (Alt: {stationInfo2.elevation}m)</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-1.5">Date de début ou semis</label>
+                      <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full rounded-lg border-slate-300 border p-2 focus:ring-emerald-500 outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-1.5">Date fin (incl. prévisions)</label>
+                      <input type="date" value={endDate} max={getFutureDate(14)} onChange={(e) => setEndDate(e.target.value)} className="w-full rounded-lg border-slate-300 border p-2 focus:ring-emerald-500 outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-1.5">Temp. de base</label>
+                      <select value={tempType} onChange={(e) => setTempType(e.target.value)} className="w-full rounded-lg border-slate-300 border p-2 focus:ring-emerald-500 outline-none bg-white">
+                        <option value="mean">Moyenne</option>
+                        <option value="min">Minimale</option>
+                        <option value="max">Maximale</option>
+                      </select>
+                    </div>
+                    {!isCompareMode && (
+                      <div>
+                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">Comparatif (Station 1)</label>
+                        <select value={comparisonPeriod} onChange={(e) => setComparisonPeriod(e.target.value)} className="w-full rounded-lg border-slate-300 border p-2 focus:ring-emerald-500 outline-none bg-white">
+                          <option value="1991-2020">Réf. 1991-2020</option>
+                          <option value="10">10 dernières années</option>
+                          <option value="5">5 dernières années</option>
+                          <option value="n-1">Année N-1</option>
+                        </select>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="mt-5 border-t border-slate-100 pt-5 flex justify-end">
+                    <button onClick={fetchWeatherData} disabled={loading} className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-6 py-3 rounded-lg transition-colors flex items-center justify-center disabled:opacity-70 w-full sm:w-auto shadow-sm">
+                      {loading ? "Modélisation en cours..." : "Lancer l'Analyse Globale"}
                     </button>
                   </div>
                 </div>
 
-                {error && (
-                  <div className="bg-rose-50 text-rose-700 p-4 rounded-xl border border-rose-200 flex items-center shadow-sm">
-                    <AlertTriangle className="mr-3 w-6 h-6 shrink-0" /> <span className="font-medium">{error}</span>
-                  </div>
-                )}
+                {error && <div className="bg-rose-50 text-rose-700 p-4 rounded-xl border border-rose-200 flex items-center shadow-sm"><AlertTriangle className="mr-3 shrink-0" /> <span className="font-medium">{error}</span></div>}
 
                 {}
-                {metrics && !loading && (
+                {metrics1 && !loading && !error && (
                   <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="flex justify-end mb-4">
+                      <button onClick={exportRawDataToCSV} className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-emerald-700 font-semibold px-4 py-2 rounded-lg transition-colors flex items-center shadow-sm text-sm">
+                        <Download className="w-4 h-4 mr-2" /> Exporter Données Brutes (CSV)
+                      </button>
+                    </div>
+
+                    {/* STATS PRINCIPALES */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                       <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
                         <div className="flex justify-between items-start">
                           <div>
-                            <p className="text-slate-500 text-sm font-medium uppercase tracking-wide">Cumul Pluie</p>
-                            <h3 className="text-3xl font-bold text-slate-800 mt-1">{metrics.cumulRain} <span className="text-lg font-medium text-slate-400">mm</span></h3>
+                            <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">T. Moyenne</p>
+                            <h3 className="text-3xl font-bold text-slate-800 mt-1">{metrics1.avgTemp} <span className="text-lg text-slate-400">°C</span></h3>
                           </div>
-                          <div className="p-3 bg-blue-50 rounded-xl"><CloudRain className="text-blue-500" /></div>
+                          <div className="p-2.5 bg-rose-50 rounded-xl"><Thermometer className="text-rose-500" /></div>
                         </div>
-                        <div className="mt-4">{refMetrics && renderDelta(metrics.cumulRain, refMetrics.cumulRain, "mm")}</div>
+                        {renderDelta(metrics1.avgTemp, metrics2, refMetrics, 'avgTemp', '°C')}
                       </div>
 
                       <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
                         <div className="flex justify-between items-start">
                           <div>
-                            <p className="text-slate-500 text-sm font-medium uppercase tracking-wide">GDD (Base 0)</p>
-                            <h3 className="text-3xl font-bold text-slate-800 mt-1">{metrics.cumulGdd0} <span className="text-lg font-medium text-slate-400">°C</span></h3>
+                            <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">Cumul Pluie</p>
+                            <h3 className="text-3xl font-bold text-slate-800 mt-1">{metrics1.rain} <span className="text-lg text-slate-400">mm</span></h3>
                           </div>
-                          <div className="p-3 bg-amber-50 rounded-xl"><Thermometer className="text-amber-500" /></div>
+                          <div className="p-2.5 bg-blue-50 rounded-xl"><CloudRain className="text-blue-500" /></div>
                         </div>
-                        <div className="mt-4">{refMetrics && renderDelta(metrics.cumulGdd0, refMetrics.cumulGdd0, "°C")}</div>
+                        {renderDelta(metrics1.rain, metrics2, refMetrics, 'rain', 'mm')}
                       </div>
 
                       <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
                         <div className="flex justify-between items-start">
                           <div>
-                            <p className="text-slate-500 text-sm font-medium uppercase tracking-wide">GDD (Base 6)</p>
-                            <h3 className="text-3xl font-bold text-slate-800 mt-1">{metrics.cumulGdd6} <span className="text-lg font-medium text-slate-400">°C</span></h3>
+                            <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">Somme (Base 0)</p>
+                            <h3 className="text-3xl font-bold text-slate-800 mt-1">{metrics1.gdd0} <span className="text-lg text-slate-400">°C</span></h3>
                           </div>
-                          <div className="p-3 bg-rose-50 rounded-xl"><Thermometer className="text-rose-500" /></div>
+                          <div className="p-2.5 bg-amber-50 rounded-xl"><Sun className="text-amber-500" /></div>
                         </div>
-                        <div className="mt-4">{refMetrics && renderDelta(metrics.cumulGdd6, refMetrics.cumulGdd6, "°C")}</div>
+                        {renderDelta(metrics1.gdd0, metrics2, refMetrics, 'gdd0', '°C')}
                       </div>
 
-                      <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                      <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">Somme (Base 6)</p>
+                            <h3 className="text-3xl font-bold text-slate-800 mt-1">{metrics1.gdd6} <span className="text-lg text-slate-400">°C</span></h3>
+                          </div>
+                          <div className="p-2.5 bg-orange-50 rounded-xl"><Sun className="text-orange-500" /></div>
+                        </div>
+                        {renderDelta(metrics1.gdd6, metrics2, refMetrics, 'gdd6', '°C')}
+                      </div>
+                    </div>
+
+                    {/* BLOCS AGRONOMIQUES MASQUABLES HORS SAISON */}
+                    {!isSpringSowing ? (
+                      <div className="bg-slate-800 p-6 rounded-2xl text-white shadow-sm flex items-start mt-6">
+                        <Info className="w-6 h-6 mr-4 shrink-0 text-amber-400 mt-1" />
                         <div>
-                          <p className="text-slate-500 text-sm font-medium uppercase tracking-wide mb-4">Jours de Stress Thermique</p>
-                          <div className="space-y-3">
-                            <div className="flex items-center justify-between bg-amber-50 px-3 py-2 rounded-lg border border-amber-100">
-                              <div className="flex items-center text-amber-900 font-medium">
-                                <Sun className="w-4 h-4 text-amber-500 mr-2"/> Jours (Tmax &gt; 25°C)
-                              </div>
-                              <span className="font-bold text-amber-700">{metrics.daysAbove25}</span>
-                            </div>
-                            <div className="flex items-center justify-between bg-blue-50 px-3 py-2 rounded-lg border border-blue-100">
-                              <div className="flex items-center text-blue-900 font-medium">
-                                <Snowflake className="w-4 h-4 text-blue-500 mr-2"/> Jours (Tmin &lt; 0°C)
-                              </div>
-                              <span className="font-bold text-blue-700">{metrics.daysBelow0}</span>
-                            </div>
-                          </div>
+                          <h3 className="font-bold text-lg mb-1">Modules agronomiques masqués</h3>
+                          <p className="text-slate-300 text-sm leading-relaxed">
+                            La date de début sélectionnée ne correspond pas à un semis de printemps classique (15 fév - 15 mai). L'évaluation des stades et le risque de montaison ont été désactivés pour cette période pour éviter des interprétations erronées.
+                          </p>
                         </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+                        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 lg:col-span-1">
+                          <h3 className="font-bold text-slate-800 mb-4 flex items-center">
+                            <AlertTriangle className="text-indigo-600 w-5 h-5 mr-2" /> Risque Montaison (Stat.1)
+                          </h3>
+                          <div className="space-y-3 mb-4">
+                            <div className="flex justify-between items-center p-3 rounded-xl border bg-slate-50 border-slate-200">
+                              <span className="text-sm font-semibold text-slate-600">Vernalisation (Tmin{'<'}5°C)</span>
+                              <span className="font-bold text-lg">{metrics1.vern}/17</span>
+                            </div>
+                            <div className="flex justify-between items-center p-3 rounded-xl border bg-slate-50 border-slate-200">
+                              <span className="text-sm font-semibold text-slate-600">Dévernalisation (Tmax{'>'}25°C)</span>
+                              <span className="font-bold text-lg">{metrics1.devern}/7</span>
+                            </div>
+                          </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                      {!isSpringSowing ? (
-                        <div className="bg-slate-800 p-6 rounded-2xl text-white shadow-sm col-span-full flex items-start">
-                          <Info className="w-6 h-6 mr-4 shrink-0 text-amber-400 mt-1" />
-                          <div>
-                            <h3 className="font-bold text-lg mb-1">Indicateurs de développement masqués</h3>
-                            <p className="text-slate-300 leading-relaxed">
-                              La date de début sélectionnée (<strong className="text-white">{new Date(startDate).toLocaleDateString('fr-FR')}</strong>) n'est pas comprise entre le 15 février et le 15 mai. <br/>
-                              Les calculs de risque de <strong>montaison (vernalisation)</strong> et l'évolution des <strong>stades phénologiques</strong> ne sont calibrés et affichés que pour un cycle de semis de printemps classique.
-                            </p>
+                          {/* Interprétation du risque de montaison */}
+                          {(() => {
+                            let riskTitle = "Faible";
+                            let riskColor = "bg-emerald-100 text-emerald-700 border-emerald-200";
+                            let riskDesc = "Les conditions froides n'ont pas été suffisantes pour induire massivement la montaison.";
+                            
+                            if (metrics1.vern >= 17) {
+                              if (metrics1.devern >= 7) {
+                                riskTitle = "Modéré (Annulé)";
+                                riskColor = "bg-amber-100 text-amber-700 border-amber-200";
+                                riskDesc = "Le risque était élevé (vernalisation atteinte) mais les températures chaudes (>25°C) ont dévernalisé la plante, limitant le risque.";
+                              } else {
+                                riskTitle = "Élevé";
+                                riskColor = "bg-rose-100 text-rose-700 border-rose-200";
+                                riskDesc = "La vernalisation est atteinte sans épisode de chaleur compensateur suffisant. Le risque de montaison est fort !";
+                              }
+                            }
+                            return (
+                              <div className={`p-4 rounded-xl border bg-opacity-40 ${riskColor}`}>
+                                <h4 className="font-bold text-sm mb-1 uppercase tracking-wide">Risque : {riskTitle}</h4>
+                                <p className="text-xs font-medium opacity-90">{riskDesc}</p>
+                              </div>
+                            );
+                          })()}
+                        </div>
+
+                        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 lg:col-span-2 overflow-x-auto">
+                          <h3 className="font-bold text-slate-800 mb-4 flex items-center"><Flag className="text-emerald-600 w-5 h-5 mr-2" /> Évolution Stades (Base 0)</h3>
+                          <table className="w-full text-sm text-left text-slate-600 whitespace-nowrap">
+                            <thead className="text-xs uppercase bg-slate-50 border-b border-slate-200">
+                              <tr>
+                                <th className="px-4 py-2 font-semibold">Stade</th>
+                                <th className="px-4 py-2 font-semibold">Stat.1</th>
+                                <th className="px-4 py-2 font-semibold">{isCompareMode ? 'Stat.2' : getCompareLabel().replace('Écart vs ', '')}</th>
+                                <th className="px-4 py-2 font-semibold">Écart</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {stageMetrics.map((st, i) => (
+                                <tr key={i} className="border-b border-slate-100">
+                                  <td className="px-4 py-2 font-medium">{st.name} <span className="text-xs text-slate-400">({st.gdd}°)</span></td>
+                                  <td className="px-4 py-2">{st.date1 || '-'}</td>
+                                  <td className="px-4 py-2">{st.dateCmp || '-'}</td>
+                                  <td className="px-4 py-2">
+                                    {st.diffDays !== null ? (
+                                      <span className={`px-2 py-1 rounded-md text-xs font-bold ${st.diffDays < 0 ? 'bg-emerald-100 text-emerald-700' : (st.diffDays > 0 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-700')}`}>
+                                        {st.diffDays < 0 ? `Avance ${Math.abs(st.diffDays)}j` : (st.diffDays > 0 ? `Retard ${st.diffDays}j` : "=")}
+                                      </span>
+                                    ) : '-'}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* GRAPHIQUES GLOBAUX */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                      
+                      {/* GRAPHIQUE PLUIE JOURNALIÈRE (Si plage <= 31 jours) */}
+                      {showDailyRain && (
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 lg:col-span-2">
+                          <div className="flex justify-between items-center mb-6">
+                            <h3 className="font-bold text-slate-800 flex items-center">Pluviométrie Journalière (Période Courte)</h3>
+                            <button onClick={() => exportChartAsPNG('chart-daily-rain', 'Pluie_Jour')} className="text-slate-400 hover:text-emerald-600"><Download className="w-5 h-5" /></button>
+                          </div>
+                          <div id="chart-daily-rain" className="h-64 bg-white">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <ComposedChart data={dailyChartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                <XAxis dataKey="date" tick={{fontSize: 12, fill: '#64748b'}} tickFormatter={(v) => v.substring(5)} dy={10} axisLine={false} tickLine={false} />
+                                <YAxis tick={{fontSize: 12, fill: '#64748b'}} dx={-10} axisLine={false} tickLine={false} />
+                                <RechartsTooltip contentStyle={{borderRadius:'12px', border:'none', boxShadow:'0 10px 15px -3px rgb(0 0 0 / 0.1)'}} formatter={(val) => [`${val} mm`, 'Pluie']} />
+                                <Legend wrapperStyle={{fontSize: '12px', paddingTop: '10px'}} />
+                                <Bar name={`Pluie Stat.1 (${locName1.split('(')[0].trim()})`} dataKey="rain1" fill="#3b82f6" radius={[3,3,0,0]} barSize={15} />
+                                {isCompareMode && (
+                                  <Bar name={`Pluie Stat.2 (${locName2.split('(')[0].trim()})`} dataKey="rain2" fill="#8b5cf6" radius={[3,3,0,0]} barSize={15} />
+                                )}
+                              </ComposedChart>
+                            </ResponsiveContainer>
                           </div>
                         </div>
-                      ) : (
-                        <>
-                          <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 lg:col-span-1">
-                            <div className="flex justify-between items-start mb-4">
-                              <div className="flex items-center gap-2">
-                                <div className="p-2 bg-indigo-50 rounded-lg"><AlertTriangle className="text-indigo-600 w-5 h-5" /></div>
-                                <h3 className="font-bold text-slate-800">Montaison</h3>
-                              </div>
-                              <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${getVernalizationStatus(metrics.vernalizationDays, metrics.devernalizationDays).bg} ${getVernalizationStatus(metrics.vernalizationDays, metrics.devernalizationDays).color}`}>
-                                Risque {getVernalizationStatus(metrics.vernalizationDays, metrics.devernalizationDays).label}
-                              </span>
-                            </div>
-                            
-                            <div className="flex flex-col gap-3 mb-4">
-                              <div className={`flex items-center justify-between rounded-xl p-3 border ${metrics.vernalizationDays >= 17 ? 'bg-indigo-50 border-indigo-200' : 'bg-slate-50 border-slate-200'}`}>
-                                <div>
-                                  <span className="block text-sm text-slate-600 font-semibold mb-0.5">Vernal. (Tmin &lt; 5°C)</span>
-                                  <span className="text-xs text-slate-400">Semis à J+90</span>
-                                </div>
-                                <span className={`text-xl font-bold ${metrics.vernalizationDays >= 17 ? 'text-indigo-700' : 'text-slate-700'}`}>{metrics.vernalizationDays}<span className="text-sm text-slate-400 font-medium">/17j</span></span>
-                              </div>
-                              
-                              <div className={`flex items-center justify-between rounded-xl p-3 border ${metrics.devernalizationDays >= 7 ? 'bg-amber-50 border-amber-200' : 'bg-slate-50 border-slate-200'}`}>
-                                <div>
-                                  <span className="block text-sm text-slate-600 font-semibold mb-0.5">Dévernal. (Tmax &gt; 25°C)</span>
-                                  <span className="text-xs text-slate-400">J+60 à J+120</span>
-                                </div>
-                                <span className={`text-xl font-bold ${metrics.devernalizationDays >= 7 ? 'text-amber-600' : 'text-slate-700'}`}>{metrics.devernalizationDays}<span className="text-sm text-slate-400 font-medium">/7j</span></span>
-                              </div>
-                            </div>
-                            <p className="text-xs font-medium text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100">{getVernalizationStatus(metrics.vernalizationDays, metrics.devernalizationDays).desc}</p>
-                          </div>
-
-                          <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 lg:col-span-2">
-                            <h3 className="font-bold text-slate-800 mb-4 flex items-center">
-                              <div className="p-2 bg-emerald-50 rounded-lg mr-3"><Flag className="w-5 h-5 text-emerald-600" /></div>
-                              Stades Phénologiques (Base 0 via T{tempType})
-                            </h3>
-                            <div className="overflow-x-auto">
-                              <table className="w-full text-sm text-left text-slate-600">
-                                <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
-                                  <tr>
-                                    <th className="px-4 py-3 font-semibold rounded-tl-lg">Stade</th>
-                                    <th className="px-4 py-3 font-semibold text-center">Seuil GDD</th>
-                                    <th className="px-4 py-3 font-semibold">Année Actuelle</th>
-                                    <th className="px-4 py-3 font-semibold">{getRefLabel()}</th>
-                                    <th className="px-4 py-3 font-semibold rounded-tr-lg">Écart vs Référence</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {stageMetrics.map((stage, idx) => (
-                                    <tr key={idx} className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
-                                      <td className="px-4 py-3 font-medium text-slate-800">{stage.name}</td>
-                                      <td className="px-4 py-3 text-center text-emerald-600 font-semibold bg-emerald-50/30">{stage.gdd} °C</td>
-                                      <td className="px-4 py-3">
-                                        {stage.currentDate ? (
-                                          <span className="flex items-center text-slate-700"><Calendar className="w-4 h-4 mr-2 text-slate-400" /> {stage.currentDate}</span>
-                                        ) : <span className="text-slate-400 italic">Non atteint</span>}
-                                      </td>
-                                      <td className="px-4 py-3">
-                                        {stage.refDate ? (
-                                          <span className="flex items-center text-slate-500"><Calendar className="w-4 h-4 mr-2 text-slate-300" /> {stage.refDate}</span>
-                                        ) : <span className="text-slate-400 italic">Non atteint</span>}
-                                      </td>
-                                      <td className="px-4 py-3">
-                                        {stage.diffDays !== null ? (
-                                          <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-bold ${stage.diffDays < 0 ? 'bg-emerald-100 text-emerald-700' : (stage.diffDays > 0 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-700')}`}>
-                                            <Clock className="w-3 h-3 mr-1" />
-                                            {stage.diffDays < 0 ? `Avance ${Math.abs(stage.diffDays)} j` : (stage.diffDays > 0 ? `Retard ${stage.diffDays} j` : "À l'heure")}
-                                          </span>
-                                        ) : <span className="text-slate-300">-</span>}
-                                      </td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </div>
-                          </div>
-                        </>
                       )}
-                    </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-2">
                       <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                         <div className="flex justify-between items-center mb-6">
-                          <h3 className="font-bold text-slate-800 flex items-center">
-                            <div className="p-2 bg-amber-50 rounded-lg mr-3"><TrendingUp className="w-5 h-5 text-amber-500" /></div>
-                            Cumul Températures (Base 0 via T{tempType})
-                          </h3>
-                          <button onClick={() => exportChartAsPNG('chart-gdd', 'Comparatif_GDD')} className="text-slate-400 hover:text-emerald-600 transition-colors p-2 hover:bg-emerald-50 rounded-lg" title="Télécharger le graphique">
-                            <Download className="w-5 h-5" />
-                          </button>
+                          <h3 className="font-bold text-slate-800 flex items-center">Cumul Températures (Base 0)</h3>
+                          <button onClick={() => exportChartAsPNG('chart-gdd', 'GDD')} className="text-slate-400 hover:text-emerald-600"><Download className="w-5 h-5" /></button>
                         </div>
                         <div id="chart-gdd" className="h-80 bg-white">
                           <ResponsiveContainer width="100%" height="100%">
                             <ComposedChart data={dailyChartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
                               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                              <XAxis dataKey="date" tick={{fontSize: 12, fill: '#64748b'}} tickFormatter={(val) => val.substring(5)} axisLine={false} tickLine={false} dy={10} />
-                              <YAxis tick={{fontSize: 12, fill: '#64748b'}} axisLine={false} tickLine={false} dx={-10} />
-                              <RechartsTooltip 
-                                contentStyle={{borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}}
-                                labelFormatter={(label) => `Date: ${label}`}
-                              />
-                              <Legend wrapperStyle={{fontSize: '13px', paddingTop: '20px'}} />
-                              <Line type="monotone" name="Année sélectionnée (°C)" dataKey="cumulGdd0" stroke="#f59e0b" strokeWidth={3} dot={false} connectNulls />
-                              <Line type="monotone" name={`Référence : ${getRefLabel()} (°C)`} dataKey="refCumulGdd0" stroke={comparisonPeriod === 'n-1' ? '#a855f7' : '#94a3b8'} strokeWidth={2} strokeDasharray={comparisonPeriod === 'n-1' ? "0" : "5 5"} dot={false} connectNulls />
+                              <XAxis dataKey="date" tick={{fontSize: 12, fill: '#64748b'}} tickFormatter={(v) => v.substring(5)} dy={10} axisLine={false} tickLine={false} />
+                              <YAxis tick={{fontSize: 12, fill: '#64748b'}} dx={-10} axisLine={false} tickLine={false} />
+                              <RechartsTooltip contentStyle={{borderRadius:'12px', border:'none', boxShadow:'0 10px 15px -3px rgb(0 0 0 / 0.1)'}} />
+                              <Legend wrapperStyle={{fontSize: '12px', paddingTop: '10px'}} />
+                              <Line type="monotone" name={`Stat.1 (${locName1.split('(')[0].trim()})`} dataKey="gdd1" stroke="#10b981" strokeWidth={3} dot={false} />
+                              {isCompareMode ? (
+                                <Line type="monotone" name={`Stat.2 (${locName2.split('(')[0].trim()})`} dataKey="gdd2" stroke="#3b82f6" strokeWidth={3} dot={false} />
+                              ) : (
+                                <Line type="monotone" name={getCompareLabel().replace('Écart vs ', '')} dataKey="gddRef" stroke="#94a3b8" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+                              )}
                             </ComposedChart>
                           </ResponsiveContainer>
                         </div>
@@ -689,55 +929,95 @@
 
                       <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                         <div className="flex justify-between items-center mb-6">
-                          <h3 className="font-bold text-slate-800 flex items-center">
-                            <div className="p-2 bg-blue-50 rounded-lg mr-3"><CloudRain className="w-5 h-5 text-blue-500" /></div>
-                            Pluviométrie Mensuelle
-                          </h3>
-                          <button onClick={() => exportChartAsPNG('chart-pluie', 'Pluviometrie_Mensuelle')} className="text-slate-400 hover:text-emerald-600 transition-colors p-2 hover:bg-emerald-50 rounded-lg" title="Télécharger le graphique">
-                            <Download className="w-5 h-5" />
-                          </button>
+                          <h3 className="font-bold text-slate-800 flex items-center">Pluviométrie Mensuelle</h3>
+                          <button onClick={() => exportChartAsPNG('chart-pluie', 'Pluie')} className="text-slate-400 hover:text-emerald-600"><Download className="w-5 h-5" /></button>
                         </div>
                         <div id="chart-pluie" className="h-80 bg-white">
                           <ResponsiveContainer width="100%" height="100%">
                             <ComposedChart data={monthlyChartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
                               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                              <XAxis dataKey="month" tick={{fontSize: 12, fill: '#64748b'}} axisLine={false} tickLine={false} dy={10} />
-                              <YAxis tick={{fontSize: 12, fill: '#64748b'}} axisLine={false} tickLine={false} dx={-10} />
-                              <RechartsTooltip 
-                                contentStyle={{borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}}
-                                formatter={(value) => [`${value} mm`, '']}
-                              />
-                              <Legend wrapperStyle={{fontSize: '13px', paddingTop: '20px'}} />
-                              <Bar name="Pluie Année (mm)" dataKey="Pluie_Année" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={20} />
-                              <Bar name={`Pluie ${getRefLabel()} (mm)`} dataKey="Pluie_Ref" fill={comparisonPeriod === 'n-1' ? '#a855f7' : '#cbd5e1'} radius={[4, 4, 0, 0]} barSize={20} />
+                              <XAxis dataKey="month" tick={{fontSize: 12, fill: '#64748b'}} dy={10} axisLine={false} tickLine={false} />
+                              <YAxis tick={{fontSize: 12, fill: '#64748b'}} dx={-10} axisLine={false} tickLine={false} />
+                              <RechartsTooltip contentStyle={{borderRadius:'12px', border:'none', boxShadow:'0 10px 15px -3px rgb(0 0 0 / 0.1)'}} formatter={(val) => [`${val} mm`, '']} />
+                              <Legend wrapperStyle={{fontSize: '12px', paddingTop: '10px'}} />
+                              <Bar name={`Stat.1 (${locName1.split('(')[0].trim()})`} dataKey="Pluie_Stat1" fill="#10b981" radius={[4,4,0,0]} barSize={20} />
+                              {isCompareMode ? (
+                                <Bar name={`Stat.2 (${locName2.split('(')[0].trim()})`} dataKey="Pluie_Stat2" fill="#3b82f6" radius={[4,4,0,0]} barSize={20} />
+                              ) : (
+                                <Bar name={getCompareLabel().replace('Écart vs ', '')} dataKey="Pluie_Ref" fill="#94a3b8" radius={[4,4,0,0]} barSize={20} />
+                              )}
                             </ComposedChart>
                           </ResponsiveContainer>
                         </div>
                       </div>
-                      
+
                       <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 lg:col-span-2">
                         <div className="flex justify-between items-center mb-6">
-                          <h3 className="font-bold text-slate-800 flex items-center">
-                            <div className="p-2 bg-rose-50 rounded-lg mr-3"><Thermometer className="w-5 h-5 text-rose-500" /></div>
-                            Évolution de la Température {tempType === 'mean' ? 'Moyenne' : (tempType === 'min' ? 'Minimale' : 'Maximale')} (°C)
-                          </h3>
-                          <button onClick={() => exportChartAsPNG('chart-temp', 'Evolution_Temperatures')} className="text-slate-400 hover:text-emerald-600 transition-colors p-2 hover:bg-emerald-50 rounded-lg" title="Télécharger le graphique">
-                            <Download className="w-5 h-5" />
-                          </button>
+                          <h3 className="font-bold text-slate-800 flex items-center">Évolution Température ({tempType === 'mean' ? 'Moyenne' : (tempType === 'min' ? 'Min' : 'Max')})</h3>
+                          <button onClick={() => exportChartAsPNG('chart-temp', 'Temp')} className="text-slate-400 hover:text-emerald-600"><Download className="w-5 h-5" /></button>
                         </div>
                         <div id="chart-temp" className="h-72 bg-white">
                           <ResponsiveContainer width="100%" height="100%">
                             <ComposedChart data={dailyChartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
                               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                              <XAxis dataKey="date" tick={{fontSize: 12, fill: '#64748b'}} tickFormatter={(val) => val.substring(5)} axisLine={false} tickLine={false} dy={10} />
-                              <YAxis tick={{fontSize: 12, fill: '#64748b'}} axisLine={false} tickLine={false} dx={-10} />
-                              <RechartsTooltip 
-                                contentStyle={{borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}}
-                                labelFormatter={(label) => `Date: ${label}`}
-                              />
-                              <Legend wrapperStyle={{fontSize: '13px', paddingTop: '20px'}} />
-                              <Line type="monotone" name="Année sélectionnée (°C)" dataKey="temp" stroke="#10b981" strokeWidth={3} dot={false} connectNulls />
-                              <Line type="monotone" name={`Référence : ${getRefLabel()} (°C)`} dataKey="refTemp" stroke={comparisonPeriod === 'n-1' ? '#a855f7' : '#94a3b8'} strokeWidth={2} strokeDasharray={comparisonPeriod === 'n-1' ? "0" : "5 5"} dot={false} connectNulls />
+                              <XAxis dataKey="date" tick={{fontSize: 12, fill: '#64748b'}} tickFormatter={(v) => v.substring(5)} dy={10} axisLine={false} tickLine={false} />
+                              <YAxis tick={{fontSize: 12, fill: '#64748b'}} dx={-10} axisLine={false} tickLine={false} />
+                              <RechartsTooltip contentStyle={{borderRadius:'12px', border:'none', boxShadow:'0 10px 15px -3px rgb(0 0 0 / 0.1)'}} />
+                              <Legend wrapperStyle={{fontSize: '12px', paddingTop: '10px'}} />
+                              <Line type="monotone" name={`Stat.1 (${locName1.split('(')[0].trim()})`} dataKey="temp1" stroke="#f59e0b" strokeWidth={2} dot={false} />
+                              {isCompareMode ? (
+                                <Line type="monotone" name={`Stat.2 (${locName2.split('(')[0].trim()})`} dataKey="temp2" stroke="#3b82f6" strokeWidth={2} dot={false} />
+                              ) : (
+                                <Line type="monotone" name={getCompareLabel().replace('Écart vs ', '')} dataKey="refTemp" stroke="#94a3b8" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+                              )}
+                            </ComposedChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+
+                      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                        <div className="flex justify-between items-center mb-6">
+                          <h3 className="font-bold text-slate-800 flex items-center">Rayonnement Global (Lumière)</h3>
+                          <button onClick={() => exportChartAsPNG('chart-rad', 'Rayonnement')} className="text-slate-400 hover:text-emerald-600"><Download className="w-5 h-5" /></button>
+                        </div>
+                        <div id="chart-rad" className="h-72 bg-white">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <ComposedChart data={dailyChartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                              <XAxis dataKey="date" tick={{fontSize: 12, fill: '#64748b'}} tickFormatter={(v) => v.substring(5)} dy={10} axisLine={false} tickLine={false} />
+                              <YAxis tick={{fontSize: 12, fill: '#64748b'}} dx={-10} axisLine={false} tickLine={false} />
+                              <RechartsTooltip contentStyle={{borderRadius:'12px', border:'none', boxShadow:'0 10px 15px -3px rgb(0 0 0 / 0.1)'}} formatter={(val) => [`${val} MJ/m²`, 'Rayonnement']} />
+                              <Legend wrapperStyle={{fontSize: '12px', paddingTop: '10px'}} />
+                              <Line type="monotone" name={`Stat.1 (${locName1.split('(')[0].trim()})`} dataKey="rad1" stroke="#eab308" strokeWidth={2} dot={false} />
+                              {isCompareMode ? (
+                                <Line type="monotone" name={`Stat.2 (${locName2.split('(')[0].trim()})`} dataKey="rad2" stroke="#8b5cf6" strokeWidth={2} dot={false} />
+                              ) : (
+                                <Line type="monotone" name={getCompareLabel().replace('Écart vs ', '')} dataKey="radRef" stroke="#94a3b8" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+                              )}
+                            </ComposedChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+
+                      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                        <div className="flex justify-between items-center mb-6">
+                          <h3 className="font-bold text-slate-800 flex items-center">Évapotranspiration (ET0)</h3>
+                          <button onClick={() => exportChartAsPNG('chart-et0', 'Evapotranspiration')} className="text-slate-400 hover:text-emerald-600"><Download className="w-5 h-5" /></button>
+                        </div>
+                        <div id="chart-et0" className="h-72 bg-white">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <ComposedChart data={dailyChartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                              <XAxis dataKey="date" tick={{fontSize: 12, fill: '#64748b'}} tickFormatter={(v) => v.substring(5)} dy={10} axisLine={false} tickLine={false} />
+                              <YAxis tick={{fontSize: 12, fill: '#64748b'}} dx={-10} axisLine={false} tickLine={false} />
+                              <RechartsTooltip contentStyle={{borderRadius:'12px', border:'none', boxShadow:'0 10px 15px -3px rgb(0 0 0 / 0.1)'}} formatter={(val) => [`${val} mm`, 'ET0']} />
+                              <Legend wrapperStyle={{fontSize: '12px', paddingTop: '10px'}} />
+                              <Line type="monotone" name={`Stat.1 (${locName1.split('(')[0].trim()})`} dataKey="et01" stroke="#0ea5e9" strokeWidth={2} dot={false} />
+                              {isCompareMode ? (
+                                <Line type="monotone" name={`Stat.2 (${locName2.split('(')[0].trim()})`} dataKey="et02" stroke="#d946ef" strokeWidth={2} dot={false} />
+                              ) : (
+                                <Line type="monotone" name={getCompareLabel().replace('Écart vs ', '')} dataKey="et0Ref" stroke="#94a3b8" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+                              )}
                             </ComposedChart>
                           </ResponsiveContainer>
                         </div>
