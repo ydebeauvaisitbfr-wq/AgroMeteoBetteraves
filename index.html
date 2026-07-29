@@ -5,9 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgroMétéo Betteraves</title>
     
-    <!-- Icônes pour le navigateur et les raccourcis smartphone (Apple Touch / PWA) -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' rx='40' fill='%231e293b'/%3E%3Ccircle cx='145' cy='55' r='24' fill='%23fbbf24'/%3E%3Cpath d='M120 70 A 18 18 0 0 1 156 70 A 24 24 0 0 1 156 118 L 84 118 A 24 24 0 0 1 84 70 A 24 24 0 0 1 120 70 Z' fill='%23e2e8f0' opacity='0.95'/%3E%3Cpath d='M 0 150 Q 100 135 200 150 L 200 200 L 0 200 Z' fill='%233f2e28'/%3E%3Cpath d='M 75 145 C 75 165 95 185 100 195 C 105 185 125 165 125 145 Z' fill='%23be123c'/%3E%3Cellipse cx='100' cy='145' rx='25' ry='6' fill='%239f1239'/%3E%3Cpath d='M 100 145 C 90 100 50 90 40 85 C 60 85 90 110 100 145 Z' fill='%2310b981'/%3E%3Cpath d='M 100 145 C 110 100 150 90 160 85 C 140 85 110 110 100 145 Z' fill='%2310b981'/%3E%3Cpath d='M 100 145 C 95 90 100 50 100 45 C 105 50 110 90 100 145 Z' fill='%23059669'/%3E%3C/svg%3E">
-    <link rel="apple-touch-icon" href="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' rx='40' fill='%231e293b'/%3E%3Ccircle cx='145' cy='55' r='24' fill='%23fbbf24'/%3E%3Cpath d='M120 70 A 18 18 0 0 1 156 70 A 24 24 0 0 1 156 118 L 84 118 A 24 24 0 0 1 84 70 A 24 24 0 0 1 120 70 Z' fill='%23e2e8f0' opacity='0.95'/%3E%3Cpath d='M 0 150 Q 100 135 200 150 L 200 200 L 0 200 Z' fill='%233f2e28'/%3E%3Cpath d='M 75 145 C 75 165 95 185 100 195 C 105 185 125 165 125 145 Z' fill='%23be123c'/%3E%3Cellipse cx='100' cy='145' rx='25' ry='6' fill='%239f1239'/%3E%3Cpath d='M 100 145 C 90 100 50 90 40 85 C 60 85 90 110 100 145 Z' fill='%2310b981'/%3E%3Cpath d='M 100 145 C 110 100 150 90 160 85 C 140 85 110 110 100 145 Z' fill='%2310b981'/%3E%3Cpath d='M 100 145 C 95 90 100 50 100 45 C 105 50 110 90 100 145 Z' fill='%23059669'/%3E%3C/svg%3E">
+    <!-- Icônes pour le navigateur -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;charset=utf-8,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='50' cy='50' r='48' fill='%23f0f9ff' stroke='%23166534' stroke-width='3'/%3E%3Cpath d='M 10 60 Q 50 45 90 60 L 90 85 Q 50 95 10 85 Z' fill='%2378350f'/%3E%3Ccircle cx='35' cy='30' r='10' fill='%23fef08a'/%3E%3Cpath d='M 60 30 Q 70 20 80 30 Q 90 30 85 40 L 55 40 Q 50 30 60 30 Z' fill='%2394a3b8'/%3E%3Cline x1='60' y1='45' x2='55' y2='55' stroke='%233b82f6' stroke-width='2' stroke-dasharray='2,2'/%3E%3Cline x1='70' y1='45' x2='65' y2='55' stroke='%233b82f6' stroke-width='2' stroke-dasharray='2,2'/%3E%3Cline x1='80' y1='45' x2='75' y2='55' stroke='%233b82f6' stroke-width='2' stroke-dasharray='2,2'/%3E%3Cpath d='M 40 60 L 50 80 L 60 60 Z' fill='%23f8fafc' stroke='%23334155' stroke-width='1'/%3E%3Cline x1='45' y1='65' x2='55' y2='65' stroke='%23334155' stroke-width='1'/%3E%3Cline x1='47' y1='70' x2='53' y2='70' stroke='%23334155' stroke-width='1'/%3E%3Cpath d='M 50 60 Q 35 40 45 35 Q 50 45 50 60' fill='%2322c55e' stroke='%23166534' stroke-width='1'/%3E%3Cpath d='M 50 60 Q 65 40 55 35 Q 50 45 50 60' fill='%2322c55e' stroke='%23166534' stroke-width='1'/%3E%3Cpath d='M 50 60 Q 50 30 50 25 Q 55 40 50 60' fill='%234ade80' stroke='%23166534' stroke-width='1'/%3E%3C/svg%3E">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -18,7 +17,8 @@
             "react": "https://esm.sh/react@18.2.0",
             "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
             "lucide-react": "https://esm.sh/lucide-react@0.330.0?deps=react@18.2.0",
-            "recharts": "https://esm.sh/recharts@2.12.0?deps=react@18.2.0,react-dom@18.2.0,prop-types@15.8.1,react-is@18.2.0"
+            "recharts": "https://esm.sh/recharts@2.12.0?deps=react@18.2.0,react-dom@18.2.0,prop-types@15.8.1,react-is@18.2.0",
+            "html2canvas": "https://esm.sh/html2canvas@1.4.1"
         }
     }
     </script>
@@ -28,8 +28,7 @@
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        
-        .logo-svg { width: 36px; height: 36px; }
+        .logo-svg { width: 48px; height: 48px; }
     </style>
 </head>
 <body>
@@ -39,13 +38,14 @@
         import React, { useState, useEffect } from 'react';
         import { createRoot } from 'react-dom/client';
         import { 
-          Thermometer, CloudRain, Sun, Snowflake, Sprout, AlertTriangle, Calendar, MapPin, 
-          TrendingUp, TrendingDown, Minus, Search, Download, Flag, Clock, Info, X, PlusCircle, Star
+          Thermometer, CloudRain, Sun, Snowflake, AlertTriangle, MapPin, 
+          TrendingUp, TrendingDown, Minus, Search, Download, Flag, Info, X, PlusCircle, Star
         } from 'lucide-react';
         import { 
           ResponsiveContainer, ComposedChart, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip, 
           Legend, Line, Bar
         } from 'recharts';
+        import html2canvas from 'html2canvas';
 
         const BEET_STAGES = [
           { name: 'Levée', gdd: 120 },
@@ -58,29 +58,24 @@
         const exportChartAsPNG = (containerId, fileName) => {
           const container = document.getElementById(containerId);
           if (!container) return;
-          const svg = container.querySelector('svg');
-          if (!svg) return;
           
-          const clonedSvg = svg.cloneNode(true);
-          clonedSvg.style.backgroundColor = '#ffffff';
+          // Masquer temporairement le bouton de téléchargement pour la photo
+          const btn = container.querySelector('button');
+          if (btn) btn.style.display = 'none';
           
-          const svgData = new XMLSerializer().serializeToString(clonedSvg);
-          const canvas = document.createElement("canvas");
-          const ctx = canvas.getContext("2d");
-          const img = new Image();
-          
-          img.onload = () => {
-            canvas.width = svg.clientWidth || svg.getBoundingClientRect().width;
-            canvas.height = svg.clientHeight || svg.getBoundingClientRect().height;
-            ctx.fillStyle = "white";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(img, 0, 0);
+          html2canvas(container, {
+            scale: 2, // Haute résolution
+            backgroundColor: '#ffffff'
+          }).then(canvas => {
+            if (btn) btn.style.display = ''; // Réafficher le bouton
             const a = document.createElement("a");
             a.download = fileName + ".png";
             a.href = canvas.toDataURL("image/png");
             a.click();
-          };
-          img.src = "data:image/svg+xml;base64," + window.btoa(unescape(encodeURIComponent(svgData)));
+          }).catch(err => {
+            if (btn) btn.style.display = '';
+            console.error("Erreur html2canvas:", err);
+          });
         };
 
         const getPastDate = (daysAgo) => {
@@ -114,10 +109,21 @@
         };
 
         const fetchOpenMeteo = async (url) => {
+          // Système de Cache
+          const cacheKey = `agro_cache_${url}`;
+          const cached = sessionStorage.getItem(cacheKey);
+          if (cached) {
+            const parsed = JSON.parse(cached);
+            // Expire après 2 heures
+            if (Date.now() - parsed.timestamp < 7200000) return parsed.data;
+          }
+
           const res = await fetch(url);
           const json = await res.json();
           if (json.error) throw new Error(`API Météo: ${json.reason}`);
           if (!res.ok) throw new Error(`Erreur réseau (${res.status})`);
+          
+          sessionStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data: json }));
           return json;
         };
 
@@ -185,13 +191,11 @@
           const [searchResults, setSearchResults] = useState([]);
           const [activeSearchIdx, setActiveSearchIdx] = useState(null);
 
-          // Fait appel au localStorage pour récupérer les sites sauvegardés
           const [savedSites, setSavedSites] = useState(() => {
             try {
               const item = window.localStorage.getItem('agrometeo_saved_sites');
               return item ? JSON.parse(item) : [];
             } catch (error) {
-              console.warn("Erreur lecture LocalStorage", error);
               return [];
             }
           });
@@ -375,9 +379,7 @@
                   if (tmax > 25) days25++;
                   if (tmin < 0) days0++;
                   
-                  // Calcul Vernalisation (Tmin < 5°C sur les 90 premiers jours)
                   if (i <= 90 && tmin < 5) vern++;
-                  // Calcul Dévernalisation (Tmax > 25°C entre J+60 et J+120)
                   if (i >= 60 && i <= 120 && tmax > 25) devern++;
                 }
                 return { 
@@ -403,9 +405,7 @@
                     sumRefGdd6 += Math.max(0, refDay.temp - 6);
                     sumRefT += refDay.temp; countRefT++;
                   }
-                  if (refDay.rain !== null && refDay.rain !== undefined) {
-                    sumRefRain += refDay.rain;
-                  }
+                  if (refDay.rain !== null && refDay.rain !== undefined) sumRefRain += refDay.rain;
                 }
               }
               
@@ -423,28 +423,48 @@
 
               for (let i = 0; i < current1.daily.time.length; i++) {
                 const dateStr = current1.daily.time[i];
+                const yyyy = dateStr.substring(0, 4);
                 const mmdd = dateStr.substring(5);
                 const mm = parseInt(mmdd.substring(0, 2), 10) - 1;
+                const yearMonthKey = `${yyyy}-${mmdd.substring(0, 2)}`;
                 
                 const t1 = current1.daily[activeTempKey][i];
                 const r1 = current1.daily.precipitation_sum[i];
                 const t2 = current2 ? current2.daily[activeTempKey][i] : null;
                 const r2 = current2 ? current2.daily.precipitation_sum[i] : null;
-                const refDay = refStats[mmdd] || { temp: null, rain: 0 };
+                const refDay = refStats[mmdd] || { temp: null, rain: 0, rad: null, et0: null };
 
                 if (t1 !== null) cGdd1 += Math.max(0, t1);
                 if (t2 !== null) cGdd2 += Math.max(0, t2);
                 if (refDay.temp !== null) cGddRef += Math.max(0, refDay.temp);
 
-                if (!monthlyMap[mm]) monthlyMap[mm] = { monthName: monthNames[mm], monthNum: mm, r1: 0, r2: 0, rRef: 0 };
-                if (r1 !== null) monthlyMap[mm].r1 += r1;
-                if (r2 !== null) monthlyMap[mm].r2 += r2;
-                monthlyMap[mm].rRef += refDay.rain;
-
                 const rad1 = current1.daily.shortwave_radiation_sum[i];
                 const rad2 = current2 ? current2.daily.shortwave_radiation_sum[i] : null;
                 const et01 = current1.daily.et0_fao_evapotranspiration[i];
                 const et02 = current2 ? current2.daily.et0_fao_evapotranspiration[i] : null;
+
+                // Regroupement par Année + Mois pour éviter le mélange en cas d'années croisées
+                if (!monthlyMap[yearMonthKey]) {
+                  monthlyMap[yearMonthKey] = { 
+                    sortKey: yearMonthKey,
+                    monthName: `${monthNames[mm]} ${yyyy}`, 
+                    r1: 0, r2: 0, rRef: 0,
+                    rad1: 0, rad2: 0, radRef: 0,
+                    et01: 0, et02: 0, et0Ref: 0
+                  };
+                }
+                
+                if (r1 !== null) monthlyMap[yearMonthKey].r1 += r1;
+                if (r2 !== null) monthlyMap[yearMonthKey].r2 += r2;
+                monthlyMap[yearMonthKey].rRef += (refDay.rain || 0);
+
+                if (rad1 !== null) monthlyMap[yearMonthKey].rad1 += rad1;
+                if (rad2 !== null) monthlyMap[yearMonthKey].rad2 += rad2;
+                if (refDay.rad != null) monthlyMap[yearMonthKey].radRef += refDay.rad;
+
+                if (et01 !== null) monthlyMap[yearMonthKey].et01 += et01;
+                if (et02 !== null) monthlyMap[yearMonthKey].et02 += et02;
+                if (refDay.et0 != null) monthlyMap[yearMonthKey].et0Ref += refDay.et0;
 
                 combinedDaily.push({
                   date: dateStr,
@@ -466,11 +486,17 @@
               }
 
               setDailyChartData(combinedDaily);
-              setMonthlyChartData(Object.values(monthlyMap).sort((a,b) => a.monthNum - b.monthNum).map(m => ({
+              setMonthlyChartData(Object.values(monthlyMap).sort((a,b) => a.sortKey.localeCompare(b.sortKey)).map(m => ({
                 month: m.monthName,
                 Pluie_Stat1: Math.round(m.r1 * 10) / 10,
                 Pluie_Stat2: Math.round(m.r2 * 10) / 10,
-                Pluie_Ref: Math.round(m.rRef * 10) / 10
+                Pluie_Ref: Math.round(m.rRef * 10) / 10,
+                rad1: Math.round(m.rad1 * 10) / 10,
+                rad2: Math.round(m.rad2 * 10) / 10,
+                radRef: Math.round(m.radRef * 10) / 10,
+                et01: Math.round(m.et01 * 10) / 10,
+                et02: Math.round(m.et02 * 10) / 10,
+                et0Ref: Math.round(m.et0Ref * 10) / 10
               })));
 
               setStageMetrics(BEET_STAGES.map(stage => {
@@ -526,8 +552,6 @@
             );
           };
 
-          const isSaved1 = savedSites.some(s => s.lat === lat1 && s.lon === lon1);
-
           const exportRawDataToCSV = () => {
             if (!apiData || !apiData.current1) return;
             const data1 = apiData.current1.daily;
@@ -565,7 +589,6 @@
               csvContent += fullRow + "\r\n";
             }
 
-            // Génération UTF-8 formatée pour le tableur Excel (BOM)
             const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvContent], { type: "text/csv;charset=utf-8;" });
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
@@ -576,38 +599,39 @@
             document.body.removeChild(link);
           };
 
-          // Vérification pour le graphique journalier de pluie (<= 31 jours)
           const sDateObj = new Date(startDate);
           const eDateObj = new Date(endDate);
           const diffDaysGlobal = Math.ceil(Math.abs(eDateObj - sDateObj) / (1000 * 60 * 60 * 24));
           const showDailyRain = diffDaysGlobal <= 31;
+          const isMoreThanTwoMonths = diffDaysGlobal > 60; // Flag pour passer en BarChart Mensuel
 
           return (
             <div className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans">
               <div className="max-w-7xl mx-auto space-y-6">
                 
-                {/* EN-TÊTE ET FORMULAIRE */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                   <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-3">
-                      {/* Logo SVG Inline stylisé et pro */}
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" className="logo-svg">
-                        <rect width="200" height="200" rx="40" fill="#1e293b"/>
-                        <circle cx="145" cy="55" r="24" fill="#fbbf24"/>
-                        <path d="M120 70 A 18 18 0 0 1 156 70 A 24 24 0 0 1 156 118 L 84 118 A 24 24 0 0 1 84 70 A 24 24 0 0 1 120 70 Z" fill="#e2e8f0" opacity="0.95"/>
-                        <path d="M 0 150 Q 100 135 200 150 L 200 200 L 0 200 Z" fill="#3f2e28"/>
-                        <path d="M 75 145 C 75 165 95 185 100 195 C 105 185 125 165 125 145 Z" fill="#be123c"/>
-                        <ellipse cx="100" cy="145" rx="25" ry="6" fill="#9f1239"/>
-                        <path d="M 100 145 C 90 100 50 90 40 85 C 60 85 90 110 100 145 Z" fill="#10b981"/>
-                        <path d="M 100 145 C 110 100 150 90 160 85 C 140 85 110 110 100 145 Z" fill="#10b981"/>
-                        <path d="M 100 145 C 95 90 100 50 100 45 C 105 50 110 90 100 145 Z" fill="#059669"/>
+                    <div className="flex items-center gap-4">
+                      <svg viewBox="0 0 100 100" className="logo-svg shrink-0" xmlns="http://www.w3.org/2000/svg">
+                          <circle cx="50" cy="50" r="48" fill="#f0f9ff" stroke="#166534" strokeWidth="3"/>
+                          <path d="M 10 60 Q 50 45 90 60 L 90 85 Q 50 95 10 85 Z" fill="#78350f" />
+                          <circle cx="35" cy="30" r="10" fill="#fef08a" />
+                          <path d="M 60 30 Q 70 20 80 30 Q 90 30 85 40 L 55 40 Q 50 30 60 30 Z" fill="#94a3b8" />
+                          <line x1="60" y1="45" x2="55" y2="55" stroke="#3b82f6" strokeWidth="2" strokeDasharray="2,2"/>
+                          <line x1="70" y1="45" x2="65" y2="55" stroke="#3b82f6" strokeWidth="2" strokeDasharray="2,2"/>
+                          <line x1="80" y1="45" x2="75" y2="55" stroke="#3b82f6" strokeWidth="2" strokeDasharray="2,2"/>
+                          <path d="M 40 60 L 50 80 L 60 60 Z" fill="#f8fafc" stroke="#334155" strokeWidth="1"/>
+                          <line x1="45" y1="65" x2="55" y2="65" stroke="#334155" strokeWidth="1"/>
+                          <line x1="47" y1="70" x2="53" y2="70" stroke="#334155" strokeWidth="1"/>
+                          <path d="M 50 60 Q 35 40 45 35 Q 50 45 50 60" fill="#22c55e" stroke="#166534" strokeWidth="1"/>
+                          <path d="M 50 60 Q 65 40 55 35 Q 50 45 50 60" fill="#22c55e" stroke="#166534" strokeWidth="1"/>
+                          <path d="M 50 60 Q 50 30 50 25 Q 55 40 50 60" fill="#4ade80" stroke="#166534" strokeWidth="1"/>
                       </svg>
                       <h1 className="text-2xl font-bold text-slate-800">AgroMétéo Betteraves</h1>
                     </div>
                   </div>
                   <p className="text-slate-500 text-sm md:text-base">Analyse climatique, pluviométrie et évolution de la culture.</p>
                   
-                  {/* Sites Sauvegardés */}
                   {savedSites.length > 0 && (
                     <div className="mt-4 flex flex-wrap items-center gap-2">
                       <span className="text-xs font-bold text-slate-500 uppercase tracking-wider mr-1">Favoris :</span>
@@ -635,7 +659,6 @@
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Station 1 */}
                       <div className="relative">
                         <label className="block text-xs font-bold text-emerald-600 mb-1.5 uppercase">Station 1 (Référence)</label>
                         <div className="relative">
@@ -646,10 +669,10 @@
                           />
                           <button 
                             onClick={toggleSaveSite}
-                            title={isSaved1 ? "Retirer des favoris" : "Ajouter aux favoris"}
+                            title={savedSites.some(s => s.lat === lat1 && s.lon === lon1) ? "Retirer des favoris" : "Ajouter aux favoris"}
                             className="absolute right-2 top-1.5 p-1 hover:bg-slate-100 rounded-md transition-colors"
                           >
-                            <Star className={`w-4 h-4 ${isSaved1 ? 'fill-amber-400 text-amber-400' : 'text-slate-300 hover:text-amber-400'}`} />
+                            <Star className={`w-4 h-4 ${savedSites.some(s => s.lat === lat1 && s.lon === lon1) ? 'fill-amber-400 text-amber-400' : 'text-slate-300 hover:text-amber-400'}`} />
                           </button>
                         </div>
                         {activeSearchIdx === 1 && searchResults.length > 0 && (
@@ -666,7 +689,6 @@
                         )}
                       </div>
 
-                      {/* Station 2 */}
                       {isCompareMode && (
                         <div className="relative">
                           <label className="block text-xs font-bold text-indigo-600 mb-1.5 uppercase">Station 2 (Comparaison)</label>
@@ -733,7 +755,6 @@
 
                 {error && <div className="bg-rose-50 text-rose-700 p-4 rounded-xl border border-rose-200 flex items-center shadow-sm"><AlertTriangle className="mr-3 shrink-0" /> <span className="font-medium">{error}</span></div>}
 
-                {}
                 {metrics1 && !loading && !error && (
                   <>
                     <div className="flex justify-end mb-4">
@@ -742,7 +763,6 @@
                       </button>
                     </div>
 
-                    {/* STATS PRINCIPALES */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                       <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
                         <div className="flex justify-between items-start">
@@ -789,7 +809,6 @@
                       </div>
                     </div>
 
-                    {/* BLOCS AGRONOMIQUES MASQUABLES HORS SAISON */}
                     {!isSpringSowing ? (
                       <div className="bg-slate-800 p-6 rounded-2xl text-white shadow-sm flex items-start mt-6">
                         <Info className="w-6 h-6 mr-4 shrink-0 text-amber-400 mt-1" />
@@ -816,8 +835,6 @@
                               <span className="font-bold text-lg">{metrics1.devern}/7</span>
                             </div>
                           </div>
-
-                          {/* Interprétation du risque de montaison */}
                           {(() => {
                             let riskTitle = "Faible";
                             let riskColor = "bg-emerald-100 text-emerald-700 border-emerald-200";
@@ -875,17 +892,15 @@
                       </div>
                     )}
 
-                    {/* GRAPHIQUES GLOBAUX */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
                       
-                      {/* GRAPHIQUE PLUIE JOURNALIÈRE (Si plage <= 31 jours) */}
                       {showDailyRain && (
-                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 lg:col-span-2">
+                        <div id="card-daily-rain" className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 lg:col-span-2">
                           <div className="flex justify-between items-center mb-6">
                             <h3 className="font-bold text-slate-800 flex items-center">Pluviométrie Journalière (Période Courte)</h3>
-                            <button onClick={() => exportChartAsPNG('chart-daily-rain', 'Pluie_Jour')} className="text-slate-400 hover:text-emerald-600"><Download className="w-5 h-5" /></button>
+                            <button onClick={() => exportChartAsPNG('card-daily-rain', 'Pluie_Jour')} className="text-slate-400 hover:text-emerald-600"><Download className="w-5 h-5" /></button>
                           </div>
-                          <div id="chart-daily-rain" className="h-64 bg-white">
+                          <div className="h-64 bg-white">
                             <ResponsiveContainer width="100%" height="100%">
                               <ComposedChart data={dailyChartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -903,12 +918,12 @@
                         </div>
                       )}
 
-                      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                      <div id="card-gdd" className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                         <div className="flex justify-between items-center mb-6">
                           <h3 className="font-bold text-slate-800 flex items-center">Cumul Températures (Base 0)</h3>
-                          <button onClick={() => exportChartAsPNG('chart-gdd', 'GDD')} className="text-slate-400 hover:text-emerald-600"><Download className="w-5 h-5" /></button>
+                          <button onClick={() => exportChartAsPNG('card-gdd', 'GDD')} className="text-slate-400 hover:text-emerald-600"><Download className="w-5 h-5" /></button>
                         </div>
-                        <div id="chart-gdd" className="h-80 bg-white">
+                        <div className="h-80 bg-white">
                           <ResponsiveContainer width="100%" height="100%">
                             <ComposedChart data={dailyChartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
                               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -927,12 +942,12 @@
                         </div>
                       </div>
 
-                      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                      <div id="card-pluie" className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                         <div className="flex justify-between items-center mb-6">
                           <h3 className="font-bold text-slate-800 flex items-center">Pluviométrie Mensuelle</h3>
-                          <button onClick={() => exportChartAsPNG('chart-pluie', 'Pluie')} className="text-slate-400 hover:text-emerald-600"><Download className="w-5 h-5" /></button>
+                          <button onClick={() => exportChartAsPNG('card-pluie', 'Pluie')} className="text-slate-400 hover:text-emerald-600"><Download className="w-5 h-5" /></button>
                         </div>
-                        <div id="chart-pluie" className="h-80 bg-white">
+                        <div className="h-80 bg-white">
                           <ResponsiveContainer width="100%" height="100%">
                             <ComposedChart data={monthlyChartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
                               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -951,12 +966,12 @@
                         </div>
                       </div>
 
-                      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 lg:col-span-2">
+                      <div id="card-temp" className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 lg:col-span-2">
                         <div className="flex justify-between items-center mb-6">
                           <h3 className="font-bold text-slate-800 flex items-center">Évolution Température ({tempType === 'mean' ? 'Moyenne' : (tempType === 'min' ? 'Min' : 'Max')})</h3>
-                          <button onClick={() => exportChartAsPNG('chart-temp', 'Temp')} className="text-slate-400 hover:text-emerald-600"><Download className="w-5 h-5" /></button>
+                          <button onClick={() => exportChartAsPNG('card-temp', 'Temp')} className="text-slate-400 hover:text-emerald-600"><Download className="w-5 h-5" /></button>
                         </div>
-                        <div id="chart-temp" className="h-72 bg-white">
+                        <div className="h-72 bg-white">
                           <ResponsiveContainer width="100%" height="100%">
                             <ComposedChart data={dailyChartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
                               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -975,50 +990,82 @@
                         </div>
                       </div>
 
-                      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                      <div id="card-rad" className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                         <div className="flex justify-between items-center mb-6">
-                          <h3 className="font-bold text-slate-800 flex items-center">Rayonnement Global (Lumière)</h3>
-                          <button onClick={() => exportChartAsPNG('chart-rad', 'Rayonnement')} className="text-slate-400 hover:text-emerald-600"><Download className="w-5 h-5" /></button>
+                          <h3 className="font-bold text-slate-800 flex items-center">Rayonnement Global {isMoreThanTwoMonths ? "(Cumul Mensuel)" : ""}</h3>
+                          <button onClick={() => exportChartAsPNG('card-rad', 'Rayonnement')} className="text-slate-400 hover:text-emerald-600"><Download className="w-5 h-5" /></button>
                         </div>
-                        <div id="chart-rad" className="h-72 bg-white">
+                        <div className="h-72 bg-white">
                           <ResponsiveContainer width="100%" height="100%">
-                            <ComposedChart data={dailyChartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
-                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                              <XAxis dataKey="date" tick={{fontSize: 12, fill: '#64748b'}} tickFormatter={(v) => v.substring(5)} dy={10} axisLine={false} tickLine={false} />
-                              <YAxis tick={{fontSize: 12, fill: '#64748b'}} dx={-10} axisLine={false} tickLine={false} />
-                              <RechartsTooltip contentStyle={{borderRadius:'12px', border:'none', boxShadow:'0 10px 15px -3px rgb(0 0 0 / 0.1)'}} formatter={(val) => [`${val} MJ/m²`, 'Rayonnement']} />
-                              <Legend wrapperStyle={{fontSize: '12px', paddingTop: '10px'}} />
-                              <Line type="monotone" name={`Stat.1 (${locName1.split('(')[0].trim()})`} dataKey="rad1" stroke="#eab308" strokeWidth={2} dot={false} />
-                              {isCompareMode ? (
-                                <Line type="monotone" name={`Stat.2 (${locName2.split('(')[0].trim()})`} dataKey="rad2" stroke="#8b5cf6" strokeWidth={2} dot={false} />
-                              ) : (
-                                <Line type="monotone" name={getCompareLabel().replace('Écart vs ', '')} dataKey="radRef" stroke="#94a3b8" strokeWidth={2} strokeDasharray="5 5" dot={false} />
-                              )}
-                            </ComposedChart>
+                            {isMoreThanTwoMonths ? (
+                              <ComposedChart data={monthlyChartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                <XAxis dataKey="month" tick={{fontSize: 12, fill: '#64748b'}} dy={10} axisLine={false} tickLine={false} />
+                                <YAxis tick={{fontSize: 12, fill: '#64748b'}} dx={-10} axisLine={false} tickLine={false} />
+                                <RechartsTooltip contentStyle={{borderRadius:'12px', border:'none', boxShadow:'0 10px 15px -3px rgb(0 0 0 / 0.1)'}} formatter={(val) => [`${val} MJ/m²`, 'Rayonnement']} />
+                                <Legend wrapperStyle={{fontSize: '12px', paddingTop: '10px'}} />
+                                <Bar name={`Stat.1 (${locName1.split('(')[0].trim()})`} dataKey="rad1" fill="#eab308" radius={[4,4,0,0]} barSize={20} />
+                                {isCompareMode ? (
+                                  <Bar name={`Stat.2 (${locName2.split('(')[0].trim()})`} dataKey="rad2" fill="#8b5cf6" radius={[4,4,0,0]} barSize={20} />
+                                ) : (
+                                  <Bar name={getCompareLabel().replace('Écart vs ', '')} dataKey="radRef" fill="#94a3b8" radius={[4,4,0,0]} barSize={20} />
+                                )}
+                              </ComposedChart>
+                            ) : (
+                              <ComposedChart data={dailyChartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                <XAxis dataKey="date" tick={{fontSize: 12, fill: '#64748b'}} tickFormatter={(v) => v.substring(5)} dy={10} axisLine={false} tickLine={false} />
+                                <YAxis tick={{fontSize: 12, fill: '#64748b'}} dx={-10} axisLine={false} tickLine={false} />
+                                <RechartsTooltip contentStyle={{borderRadius:'12px', border:'none', boxShadow:'0 10px 15px -3px rgb(0 0 0 / 0.1)'}} formatter={(val) => [`${val} MJ/m²`, 'Rayonnement']} />
+                                <Legend wrapperStyle={{fontSize: '12px', paddingTop: '10px'}} />
+                                <Line type="monotone" name={`Stat.1 (${locName1.split('(')[0].trim()})`} dataKey="rad1" stroke="#eab308" strokeWidth={2} dot={false} />
+                                {isCompareMode ? (
+                                  <Line type="monotone" name={`Stat.2 (${locName2.split('(')[0].trim()})`} dataKey="rad2" stroke="#8b5cf6" strokeWidth={2} dot={false} />
+                                ) : (
+                                  <Line type="monotone" name={getCompareLabel().replace('Écart vs ', '')} dataKey="radRef" stroke="#94a3b8" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+                                )}
+                              </ComposedChart>
+                            )}
                           </ResponsiveContainer>
                         </div>
                       </div>
 
-                      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                      <div id="card-et0" className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                         <div className="flex justify-between items-center mb-6">
-                          <h3 className="font-bold text-slate-800 flex items-center">Évapotranspiration (ET0)</h3>
-                          <button onClick={() => exportChartAsPNG('chart-et0', 'Evapotranspiration')} className="text-slate-400 hover:text-emerald-600"><Download className="w-5 h-5" /></button>
+                          <h3 className="font-bold text-slate-800 flex items-center">Évapotranspiration (ET0) {isMoreThanTwoMonths ? "(Cumul Mensuel)" : ""}</h3>
+                          <button onClick={() => exportChartAsPNG('card-et0', 'Evapotranspiration')} className="text-slate-400 hover:text-emerald-600"><Download className="w-5 h-5" /></button>
                         </div>
-                        <div id="chart-et0" className="h-72 bg-white">
+                        <div className="h-72 bg-white">
                           <ResponsiveContainer width="100%" height="100%">
-                            <ComposedChart data={dailyChartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
-                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                              <XAxis dataKey="date" tick={{fontSize: 12, fill: '#64748b'}} tickFormatter={(v) => v.substring(5)} dy={10} axisLine={false} tickLine={false} />
-                              <YAxis tick={{fontSize: 12, fill: '#64748b'}} dx={-10} axisLine={false} tickLine={false} />
-                              <RechartsTooltip contentStyle={{borderRadius:'12px', border:'none', boxShadow:'0 10px 15px -3px rgb(0 0 0 / 0.1)'}} formatter={(val) => [`${val} mm`, 'ET0']} />
-                              <Legend wrapperStyle={{fontSize: '12px', paddingTop: '10px'}} />
-                              <Line type="monotone" name={`Stat.1 (${locName1.split('(')[0].trim()})`} dataKey="et01" stroke="#0ea5e9" strokeWidth={2} dot={false} />
-                              {isCompareMode ? (
-                                <Line type="monotone" name={`Stat.2 (${locName2.split('(')[0].trim()})`} dataKey="et02" stroke="#d946ef" strokeWidth={2} dot={false} />
-                              ) : (
-                                <Line type="monotone" name={getCompareLabel().replace('Écart vs ', '')} dataKey="et0Ref" stroke="#94a3b8" strokeWidth={2} strokeDasharray="5 5" dot={false} />
-                              )}
-                            </ComposedChart>
+                            {isMoreThanTwoMonths ? (
+                              <ComposedChart data={monthlyChartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                <XAxis dataKey="month" tick={{fontSize: 12, fill: '#64748b'}} dy={10} axisLine={false} tickLine={false} />
+                                <YAxis tick={{fontSize: 12, fill: '#64748b'}} dx={-10} axisLine={false} tickLine={false} />
+                                <RechartsTooltip contentStyle={{borderRadius:'12px', border:'none', boxShadow:'0 10px 15px -3px rgb(0 0 0 / 0.1)'}} formatter={(val) => [`${val} mm`, 'ET0']} />
+                                <Legend wrapperStyle={{fontSize: '12px', paddingTop: '10px'}} />
+                                <Bar name={`Stat.1 (${locName1.split('(')[0].trim()})`} dataKey="et01" fill="#0ea5e9" radius={[4,4,0,0]} barSize={20} />
+                                {isCompareMode ? (
+                                  <Bar name={`Stat.2 (${locName2.split('(')[0].trim()})`} dataKey="et02" fill="#d946ef" radius={[4,4,0,0]} barSize={20} />
+                                ) : (
+                                  <Bar name={getCompareLabel().replace('Écart vs ', '')} dataKey="et0Ref" fill="#94a3b8" radius={[4,4,0,0]} barSize={20} />
+                                )}
+                              </ComposedChart>
+                            ) : (
+                              <ComposedChart data={dailyChartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                <XAxis dataKey="date" tick={{fontSize: 12, fill: '#64748b'}} tickFormatter={(v) => v.substring(5)} dy={10} axisLine={false} tickLine={false} />
+                                <YAxis tick={{fontSize: 12, fill: '#64748b'}} dx={-10} axisLine={false} tickLine={false} />
+                                <RechartsTooltip contentStyle={{borderRadius:'12px', border:'none', boxShadow:'0 10px 15px -3px rgb(0 0 0 / 0.1)'}} formatter={(val) => [`${val} mm`, 'ET0']} />
+                                <Legend wrapperStyle={{fontSize: '12px', paddingTop: '10px'}} />
+                                <Line type="monotone" name={`Stat.1 (${locName1.split('(')[0].trim()})`} dataKey="et01" stroke="#0ea5e9" strokeWidth={2} dot={false} />
+                                {isCompareMode ? (
+                                  <Line type="monotone" name={`Stat.2 (${locName2.split('(')[0].trim()})`} dataKey="et02" stroke="#d946ef" strokeWidth={2} dot={false} />
+                                ) : (
+                                  <Line type="monotone" name={getCompareLabel().replace('Écart vs ', '')} dataKey="et0Ref" stroke="#94a3b8" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+                                )}
+                              </ComposedChart>
+                            )}
                           </ResponsiveContainer>
                         </div>
                       </div>
