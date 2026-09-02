@@ -43,7 +43,7 @@
         } from 'lucide-react';
         import { 
           ResponsiveContainer, ComposedChart, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip, 
-          Legend, Line, Bar
+          Legend, Line, Bar, Area
         } from 'recharts';
         import html2canvas from 'html2canvas';
 
@@ -52,7 +52,7 @@
           { name: '2 Feuilles', gdd: 250 },
           { name: '4 Feuilles', gdd: 350 },
           { name: '6 Feuilles', gdd: 450 },
-          { name: 'Fermeture des rangs', gdd: 1000 }
+          { name: 'Fermeture des rangs', gdd: 900 }
         ];
 
         const exportChartAsPNG = (containerId, fileName) => {
@@ -217,6 +217,11 @@
           const [stageMetrics, setStageMetrics] = useState([]);
           const [monthlyChartData, setMonthlyChartData] = useState([]);
           const [dailyChartData, setDailyChartData] = useState([]);
+
+          const [chartFilters, setChartFilters] = useState({
+            rain: true, tMean: true, tMin: false, tMax: false, 
+            hMean: true, hMin: false, hMax: false, hDur90: false
+          });
 
           const toggleSaveSite = () => {
             const isCurrentlySaved = savedSites.some(site => site.lat === lat1 && site.lon === lon1);
@@ -443,6 +448,37 @@
                 const et01 = current1.daily.et0_fao_evapotranspiration[i];
                 const et02 = current2 ? current2.daily.et0_fao_evapotranspiration[i] : null;
 
+                let hum1 = null;
+                let hum2 = null;
+                let hMin1 = null, hMax1 = null, hDur90_1 = null;
+                if (current1.hourly && current1.hourly.relative_humidity_2m) {
+                  let sum = 0, count = 0, min = 100, max = 0, dur90 = 0;
+                  for(let h = i * 24; h < (i + 1) * 24; h++) {
+                    const val = current1.hourly.relative_humidity_2m[h];
+                    if (val !== null && val !== undefined) { 
+                      sum += val; 
+                      count++; 
+                      if (val < min) min = val;
+                      if (val > max) max = val;
+                      if (val > 90) dur90++;
+                    }
+                  }
+                  if (count > 0) {
+                    hum1 = Math.round(sum / count);
+                    hMin1 = Math.round(min);
+                    hMax1 = Math.round(max);
+                    hDur90_1 = dur90;
+                  }
+                }
+                if (current2 && current2.hourly && current2.hourly.relative_humidity_2m) {
+                  let sum = 0, count = 0;
+                  for(let h = i * 24; h < (i + 1) * 24; h++) {
+                    const val = current2.hourly.relative_humidity_2m[h];
+                    if (val !== null && val !== undefined) { sum += val; count++; }
+                  }
+                  if (count > 0) hum2 = Math.round(sum / count);
+                }
+
                 // Regroupement par Année + Mois pour éviter le mélange en cas d'années croisées
                 if (!monthlyMap[yearMonthKey]) {
                   monthlyMap[yearMonthKey] = { 
@@ -468,6 +504,12 @@
 
                 combinedDaily.push({
                   date: dateStr,
+                  tMin1: current1.daily.temperature_2m_min[i] != null ? Math.round(current1.daily.temperature_2m_min[i] * 10) / 10 : null,
+                  tMax1: current1.daily.temperature_2m_max[i] != null ? Math.round(current1.daily.temperature_2m_max[i] * 10) / 10 : null,
+                  tMean1: current1.daily.temperature_2m_mean[i] != null ? Math.round(current1.daily.temperature_2m_mean[i] * 10) / 10 : null,
+                  humMin1: hMin1,
+                  humMax1: hMax1,
+                  humDur90_1: hDur90_1,
                   temp1: t1 !== null ? Math.round(t1 * 10) / 10 : null,
                   temp2: t2 !== null ? Math.round(t2 * 10) / 10 : null,
                   refTemp: refDay.temp !== null ? Math.round(refDay.temp * 10) / 10 : null,
@@ -481,7 +523,9 @@
                   radRef: refDay.rad != null ? Math.round(refDay.rad * 10) / 10 : null,
                   et01: et01 !== null ? Math.round(et01 * 10) / 10 : null,
                   et02: et02 !== null ? Math.round(et02 * 10) / 10 : null,
-                  et0Ref: refDay.et0 != null ? Math.round(refDay.et0 * 10) / 10 : null
+                  et0Ref: refDay.et0 != null ? Math.round(refDay.et0 * 10) / 10 : null,
+                  humidity1: hum1,
+                  humidity2: hum2
                 });
               }
 
@@ -894,6 +938,63 @@
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
                       
+                      {/* NOUVEAU GRAPHIQUE A LA CARTE */}
+                      <div id="card-custom" className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 lg:col-span-2">
+                        <div className="flex justify-between items-center mb-4">
+                          <h3 className="font-bold text-slate-800 flex items-center">Analyse Interactive Multicritère (Station 1)</h3>
+                          <button onClick={() => exportChartAsPNG('card-custom', 'Analyse_Personnalisee')} className="text-slate-400 hover:text-emerald-600"><Download className="w-5 h-5" /></button>
+                        </div>
+                        
+                        <div className="flex flex-wrap gap-2 mb-6">
+                          {[
+                            { key: 'rain', label: 'Pluie (mm)' },
+                            { key: 'tMean', label: 'T. Moyenne (°C)' },
+                            { key: 'tMin', label: 'T. Min (°C)' },
+                            { key: 'tMax', label: 'T. Max (°C)' },
+                            { key: 'hMean', label: 'Hygro Moy (%)' },
+                            { key: 'hMin', label: 'Hygro Min (%)' },
+                            { key: 'hMax', label: 'Hygro Max (%)' },
+                            { key: 'hDur90', label: 'Hygro >90% (heures)' },
+                          ].map(opt => (
+                            <button 
+                              key={opt.key}
+                              onClick={() => setChartFilters(prev => ({...prev, [opt.key]: !prev[opt.key]}))}
+                              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors border ${chartFilters[opt.key] ? 'bg-slate-800 border-slate-800 text-white shadow-md' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50 shadow-sm'}`}
+                            >
+                              {opt.label}
+                            </button>
+                          ))}
+                        </div>
+
+                        <div className="h-96 bg-white">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <ComposedChart data={dailyChartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                              <XAxis dataKey="date" tick={{fontSize: 12, fill: '#64748b'}} tickFormatter={(v) => v.substring(5)} dy={10} axisLine={false} tickLine={false} />
+                              
+                              {chartFilters.rain && <YAxis yAxisId="left" orientation="left" tick={{fontSize: 12, fill: '#3b82f6'}} dx={-10} axisLine={false} tickLine={false} />}
+                              {chartFilters.hDur90 && <YAxis yAxisId="hours" orientation="left" domain={[0, 24]} tick={{fontSize: 12, fill: '#8b5cf6'}} dx={-10} axisLine={false} tickLine={false} />}
+                              {(chartFilters.tMean || chartFilters.tMin || chartFilters.tMax) && <YAxis yAxisId="temp" orientation="right" tick={{fontSize: 12, fill: '#f59e0b'}} dx={10} axisLine={false} tickLine={false} />}
+                              {(chartFilters.hMean || chartFilters.hMin || chartFilters.hMax) && <YAxis yAxisId="hum" orientation="right" domain={[0, 100]} tick={{fontSize: 12, fill: '#14b8a6'}} dx={10} axisLine={false} tickLine={false} />}
+
+                              <RechartsTooltip contentStyle={{borderRadius:'12px', border:'none', boxShadow:'0 10px 15px -3px rgb(0 0 0 / 0.1)'}} />
+                              <Legend wrapperStyle={{fontSize: '12px', paddingTop: '10px'}} />
+                              
+                              {chartFilters.hDur90 && <Area yAxisId="hours" type="monotone" name={`Hygro >90% [heures]`} dataKey="humDur90_1" fill="#c4b5fd" stroke="#8b5cf6" strokeWidth={2} fillOpacity={0.3} />}
+                              {chartFilters.rain && <Bar yAxisId="left" name={`Pluie [mm]`} dataKey="rain1" fill="#3b82f6" radius={[3,3,0,0]} barSize={15} />}
+                              
+                              {chartFilters.tMax && <Line yAxisId="temp" type="monotone" name={`T. Max [°C]`} dataKey="tMax1" stroke="#ef4444" strokeWidth={2} dot={false} />}
+                              {chartFilters.tMean && <Line yAxisId="temp" type="monotone" name={`T. Moy [°C]`} dataKey="tMean1" stroke="#f59e0b" strokeWidth={2} dot={false} />}
+                              {chartFilters.tMin && <Line yAxisId="temp" type="monotone" name={`T. Min [°C]`} dataKey="tMin1" stroke="#38bdf8" strokeWidth={2} dot={false} />}
+                              
+                              {chartFilters.hMax && <Line yAxisId="hum" type="monotone" name={`Hygro Max [%]`} dataKey="humMax1" stroke="#06b6d4" strokeWidth={2} dot={false} strokeDasharray="3 3" />}
+                              {chartFilters.hMean && <Line yAxisId="hum" type="monotone" name={`Hygro Moy [%]`} dataKey="humidity1" stroke="#10b981" strokeWidth={2} dot={false} strokeDasharray="3 3" />}
+                              {chartFilters.hMin && <Line yAxisId="hum" type="monotone" name={`Hygro Min [%]`} dataKey="humMin1" stroke="#84cc16" strokeWidth={2} dot={false} strokeDasharray="3 3" />}
+                            </ComposedChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+
                       {showDailyRain && (
                         <div id="card-daily-rain" className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 lg:col-span-2">
                           <div className="flex justify-between items-center mb-6">
