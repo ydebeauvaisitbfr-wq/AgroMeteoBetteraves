@@ -219,7 +219,7 @@
           const [dailyChartData, setDailyChartData] = useState([]);
 
           const [chartFilters, setChartFilters] = useState({
-            rain: true, tMean: true, tMin: false, tMax: false, 
+            rain: true, et0: false, tMean: true, tMin: false, tMax: false, 
             hMean: true, hMin: false, hMax: false, hDur90: false
           });
 
@@ -948,6 +948,7 @@
                         <div className="flex flex-wrap gap-2 mb-6">
                           {[
                             { key: 'rain', label: 'Pluie (mm)' },
+                            { key: 'et0', label: 'ET0 (mm)' },
                             { key: 'tMean', label: 'T. Moyenne (°C)' },
                             { key: 'tMin', label: 'T. Min (°C)' },
                             { key: 'tMax', label: 'T. Max (°C)' },
@@ -982,6 +983,7 @@
                               
                               {chartFilters.hDur90 && <Area yAxisId="hours" type="monotone" name={`Hygro >90% [heures]`} dataKey="humDur90_1" fill="#c4b5fd" stroke="#8b5cf6" strokeWidth={2} fillOpacity={0.3} />}
                               {chartFilters.rain && <Bar yAxisId="left" name={`Pluie [mm]`} dataKey="rain1" fill="#3b82f6" radius={[3,3,0,0]} barSize={15} />}
+                              {chartFilters.et0 && <Line yAxisId="left" type="monotone" name={`ET0 [mm]`} dataKey="et01" stroke="#0ea5e9" strokeWidth={2} strokeDasharray="4 4" dot={false} />}
                               
                               {chartFilters.tMax && <Line yAxisId="temp" type="monotone" name={`T. Max [°C]`} dataKey="tMax1" stroke="#ef4444" strokeWidth={2} dot={false} />}
                               {chartFilters.tMean && <Line yAxisId="temp" type="monotone" name={`T. Moy [°C]`} dataKey="tMean1" stroke="#f59e0b" strokeWidth={2} dot={false} />}
