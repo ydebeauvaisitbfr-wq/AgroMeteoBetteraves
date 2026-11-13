@@ -8,6 +8,9 @@
     <!-- Icônes pour le navigateur -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;charset=utf-8,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='50' cy='50' r='48' fill='%23f0f9ff' stroke='%23166534' stroke-width='3'/%3E%3Cpath d='M 10 60 Q 50 45 90 60 L 90 85 Q 50 95 10 85 Z' fill='%2378350f'/%3E%3Ccircle cx='35' cy='30' r='10' fill='%23fef08a'/%3E%3Cpath d='M 60 30 Q 70 20 80 30 Q 90 30 85 40 L 55 40 Q 50 30 60 30 Z' fill='%2394a3b8'/%3E%3Cline x1='60' y1='45' x2='55' y2='55' stroke='%233b82f6' stroke-width='2' stroke-dasharray='2,2'/%3E%3Cline x1='70' y1='45' x2='65' y2='55' stroke='%233b82f6' stroke-width='2' stroke-dasharray='2,2'/%3E%3Cline x1='80' y1='45' x2='75' y2='55' stroke='%233b82f6' stroke-width='2' stroke-dasharray='2,2'/%3E%3Cpath d='M 40 60 L 50 80 L 60 60 Z' fill='%23f8fafc' stroke='%23334155' stroke-width='1'/%3E%3Cline x1='45' y1='65' x2='55' y2='65' stroke='%23334155' stroke-width='1'/%3E%3Cline x1='47' y1='70' x2='53' y2='70' stroke='%23334155' stroke-width='1'/%3E%3Cpath d='M 50 60 Q 35 40 45 35 Q 50 45 50 60' fill='%2322c55e' stroke='%23166534' stroke-width='1'/%3E%3Cpath d='M 50 60 Q 65 40 55 35 Q 50 45 50 60' fill='%2322c55e' stroke='%23166534' stroke-width='1'/%3E%3Cpath d='M 50 60 Q 50 30 50 25 Q 55 40 50 60' fill='%234ade80' stroke='%23166534' stroke-width='1'/%3E%3C/svg%3E">
 
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
@@ -38,7 +41,7 @@
         import React, { useState, useEffect } from 'react';
         import { createRoot } from 'react-dom/client';
         import { 
-          Thermometer, CloudRain, Sun, Snowflake, AlertTriangle, MapPin, 
+          Thermometer, CloudRain, Sun, Snowflake, AlertTriangle, MapPin, Map,
           TrendingUp, TrendingDown, Minus, Search, Download, Flag, Info, X, PlusCircle, Star
         } from 'lucide-react';
         import { 
@@ -218,10 +221,64 @@
           const [monthlyChartData, setMonthlyChartData] = useState([]);
           const [dailyChartData, setDailyChartData] = useState([]);
 
+          const [showMapModal, setShowMapModal] = useState(false);
+          const [mapMarker, setMapMarker] = useState(null);
+          const [customParcelName, setCustomParcelName] = useState("");
+          const leafletMap = React.useRef(null);
+          const markerRef = React.useRef(null);
+
+          const [forceShowStages, setForceShowStages] = useState(false);
+
           const [chartFilters, setChartFilters] = useState({
             rain: true, et0: false, tMean: true, tMin: false, tMax: false, 
             hMean: true, hMin: false, hMax: false, hDur90: false
           });
+
+          useEffect(() => {
+            if (showMapModal && !leafletMap.current) {
+              setTimeout(() => {
+                const mapEl = document.getElementById('parcel-map');
+                if (mapEl && window.L) {
+                  delete window.L.Icon.Default.prototype._getIconUrl;
+                  window.L.Icon.Default.mergeOptions({
+                    iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+                    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+                    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+                  });
+
+                  leafletMap.current = window.L.map('parcel-map').setView([46.603354, 1.888334], 6);
+                  window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors'
+                  }).addTo(leafletMap.current);
+
+                  leafletMap.current.on('click', (e) => {
+                    if (markerRef.current) {
+                      leafletMap.current.removeLayer(markerRef.current);
+                    }
+                    markerRef.current = window.L.marker(e.latlng).addTo(leafletMap.current);
+                    setMapMarker(e.latlng);
+                  });
+                }
+              }, 100);
+            }
+            return () => {
+              if (!showMapModal && leafletMap.current) {
+                leafletMap.current.remove();
+                leafletMap.current = null;
+                markerRef.current = null;
+              }
+            };
+          }, [showMapModal]);
+
+          const confirmMapSelection = () => {
+            if (mapMarker && customParcelName) {
+              setLat1(mapMarker.lat.toFixed(5));
+              setLon1(mapMarker.lng.toFixed(5));
+              setLocName1(customParcelName);
+              setCityQuery1(customParcelName);
+              setShowMapModal(false);
+            }
+          };
 
           const toggleSaveSite = () => {
             const isCurrentlySaved = savedSites.some(site => site.lat === lat1 && site.lon === lon1);
@@ -336,7 +393,9 @@
                     temp: pData[activeTempKey][i], 
                     rain: pData.precipitation_sum[i],
                     rad: pData.shortwave_radiation_sum[i],
-                    et0: pData.et0_fao_evapotranspiration[i]
+                    et0: pData.et0_fao_evapotranspiration[i],
+                    tmax: pData.temperature_2m_max[i],
+                    tmin: pData.temperature_2m_min[i]
                   };
                 }
               } else if (ref.length > 0) {
@@ -345,15 +404,19 @@
                   if (!res || !res.daily) return;
                   for (let i = 0; i < res.daily.time.length; i++) {
                     const mmdd = res.daily.time[i].substring(5);
-                    if (!tempAgg[mmdd]) tempAgg[mmdd] = { temp: [], rain: [], rad: [], et0: [] };
+                    if (!tempAgg[mmdd]) tempAgg[mmdd] = { temp: [], rain: [], rad: [], et0: [], tmax: [], tmin: [] };
                     const t = res.daily[activeTempKey][i];
                     const r = res.daily.precipitation_sum[i];
                     const rad = res.daily.shortwave_radiation_sum[i];
                     const et0 = res.daily.et0_fao_evapotranspiration[i];
+                    const tmax = res.daily.temperature_2m_max[i];
+                    const tmin = res.daily.temperature_2m_min[i];
                     if (t !== null && t !== undefined) tempAgg[mmdd].temp.push(t);
                     if (r !== null && r !== undefined) tempAgg[mmdd].rain.push(r);
                     if (rad !== null && rad !== undefined) tempAgg[mmdd].rad.push(rad);
                     if (et0 !== null && et0 !== undefined) tempAgg[mmdd].et0.push(et0);
+                    if (tmax !== null && tmax !== undefined) tempAgg[mmdd].tmax.push(tmax);
+                    if (tmin !== null && tmin !== undefined) tempAgg[mmdd].tmin.push(tmin);
                   }
                 });
                 for (const [mmdd, vals] of Object.entries(tempAgg)) {
@@ -361,14 +424,18 @@
                     temp: vals.temp.length > 0 ? vals.temp.reduce((a,b)=>a+b,0) / vals.temp.length : null,
                     rain: vals.rain.length > 0 ? vals.rain.reduce((a,b)=>a+b,0) / vals.rain.length : 0,
                     rad: vals.rad.length > 0 ? vals.rad.reduce((a,b)=>a+b,0) / vals.rad.length : null,
-                    et0: vals.et0.length > 0 ? vals.et0.reduce((a,b)=>a+b,0) / vals.et0.length : null
+                    et0: vals.et0.length > 0 ? vals.et0.reduce((a,b)=>a+b,0) / vals.et0.length : null,
+                    tmax: vals.tmax.length > 0 ? vals.tmax.reduce((a,b)=>a+b,0) / vals.tmax.length : null,
+                    tmin: vals.tmin.length > 0 ? vals.tmin.reduce((a,b)=>a+b,0) / vals.tmin.length : null
                   };
                 }
               }
 
               const processMetrics = (data) => {
                 if (!data) return null;
-                let rain = 0, gdd0 = 0, gdd6 = 0, days25 = 0, days0 = 0, vern = 0, devern = 0, sumT = 0, countT = 0;
+                let rain = 0, gdd0 = 0, gdd6 = 0, vern = 0, devern = 0, sumT = 0, countT = 0;
+                let frostDays = 0, iceDays = 0, summerDays = 0, hotDays = 0, tropicalNights = 0;
+                
                 for (let i = 0; i < data.daily.time.length; i++) {
                   const currT = data.daily[activeTempKey][i];
                   const tmax = data.daily.temperature_2m_max[i];
@@ -381,15 +448,20 @@
                     sumT += currT; countT++;
                   }
                   if (r !== null) rain += r;
-                  if (tmax > 25) days25++;
-                  if (tmin < 0) days0++;
+                  
+                  // Nouveaux Indicateurs
+                  if (tmin <= 0) frostDays++;
+                  if (tmax <= 0) iceDays++;
+                  if (tmax >= 25) summerDays++;
+                  if (tmax >= 30) hotDays++;
+                  if (tmin >= 20) tropicalNights++;
                   
                   if (i <= 90 && tmin < 5) vern++;
                   if (i >= 60 && i <= 120 && tmax > 25) devern++;
                 }
                 return { 
                   rain: Math.round(rain * 10) / 10, gdd0: Math.round(gdd0), gdd6: Math.round(gdd6), 
-                  days25, days0, vern, devern, 
+                  frostDays, iceDays, summerDays, hotDays, tropicalNights, vern, devern, 
                   avgTemp: countT > 0 ? (Math.round((sumT / countT) * 10) / 10) : 0 
                 };
               };
@@ -398,12 +470,50 @@
               setMetrics1(m1);
               if (current2) setMetrics2(processMetrics(current2));
 
+              // --- NOUVEAU CALCUL POUR LES JOURS DE STRESS EXTRÊMES ---
+              // On calcule la probabilité de l'événement extrême pour chaque date (mm-dd) dans l'historique brut
+              const refExtremesProb = {};
+              if (compPeriod === 'n-1' && ref[0] && ref[0].daily) {
+                const pData = ref[0].daily;
+                for (let i = 0; i < pData.time.length; i++) {
+                  const mmdd = pData.time[i].substring(5);
+                  if (!refExtremesProb[mmdd]) refExtremesProb[mmdd] = { frost: 0, ice: 0, summer: 0, hot: 0, tropical: 0, count: 0 };
+                  const rTmax = pData.temperature_2m_max[i];
+                  const rTmin = pData.temperature_2m_min[i];
+                  if (rTmin <= 0) refExtremesProb[mmdd].frost++;
+                  if (rTmax <= 0) refExtremesProb[mmdd].ice++;
+                  if (rTmax >= 25) refExtremesProb[mmdd].summer++;
+                  if (rTmax >= 30) refExtremesProb[mmdd].hot++;
+                  if (rTmin >= 20) refExtremesProb[mmdd].tropical++;
+                  refExtremesProb[mmdd].count++;
+                }
+              } else if (ref.length > 0) {
+                ref.forEach(res => {
+                  if (!res || !res.daily) return;
+                  for (let i = 0; i < res.daily.time.length; i++) {
+                    const mmdd = res.daily.time[i].substring(5);
+                    if (!refExtremesProb[mmdd]) refExtremesProb[mmdd] = { frost: 0, ice: 0, summer: 0, hot: 0, tropical: 0, count: 0 };
+                    const rTmax = res.daily.temperature_2m_max[i];
+                    const rTmin = res.daily.temperature_2m_min[i];
+                    if (rTmin <= 0) refExtremesProb[mmdd].frost++;
+                    if (rTmax <= 0) refExtremesProb[mmdd].ice++;
+                    if (rTmax >= 25) refExtremesProb[mmdd].summer++;
+                    if (rTmax >= 30) refExtremesProb[mmdd].hot++;
+                    if (rTmin >= 20) refExtremesProb[mmdd].tropical++;
+                    refExtremesProb[mmdd].count++;
+                  }
+                });
+              }
+
               let sumRefRain = 0, sumRefGdd0 = 0, sumRefGdd6 = 0, sumRefT = 0, countRefT = 0;
+              let expFrost = 0, expIce = 0, expSummer = 0, expHot = 0, expTropical = 0;
               
               for (let i = 0; i < current1.daily.time.length; i++) {
                 const mmdd = current1.daily.time[i].substring(5);
                 const refDay = refStats[mmdd];
+                const refProb = refExtremesProb[mmdd];
                 
+                // Calcul des moyennes classiques
                 if (refDay) {
                   if (refDay.temp !== null) {
                     sumRefGdd0 += Math.max(0, refDay.temp - 0);
@@ -412,13 +522,27 @@
                   }
                   if (refDay.rain !== null && refDay.rain !== undefined) sumRefRain += refDay.rain;
                 }
+                
+                // Ajout de l'espérance mathématique des événements extrêmes pour ce jour précis
+                if (refProb && refProb.count > 0) {
+                  expFrost += (refProb.frost / refProb.count);
+                  expIce += (refProb.ice / refProb.count);
+                  expSummer += (refProb.summer / refProb.count);
+                  expHot += (refProb.hot / refProb.count);
+                  expTropical += (refProb.tropical / refProb.count);
+                }
               }
               
               setRefMetrics({
                 rain: Math.round(sumRefRain * 10) / 10,
                 gdd0: Math.round(sumRefGdd0),
                 gdd6: Math.round(sumRefGdd6),
-                avgTemp: countRefT > 0 ? (Math.round((sumRefT / countRefT) * 10) / 10) : 0
+                avgTemp: countRefT > 0 ? (Math.round((sumRefT / countRefT) * 10) / 10) : 0,
+                frostDays: Math.round(expFrost),
+                iceDays: Math.round(expIce),
+                summerDays: Math.round(expSummer),
+                hotDays: Math.round(expHot),
+                tropicalNights: Math.round(expTropical)
               });
 
               const combinedDaily = [];
@@ -709,8 +833,15 @@
                           <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
                           <input 
                             type="text" value={cityQuery1} onChange={(e) => handleSearchInput(e.target.value, 1)}
-                            className="pl-10 pr-10 w-full rounded-lg border-slate-300 border p-2 focus:ring-emerald-500 bg-white outline-none"
+                            className="pl-10 pr-16 w-full rounded-lg border-slate-300 border p-2 focus:ring-emerald-500 bg-white outline-none"
                           />
+                          <button 
+                            onClick={() => setShowMapModal(true)}
+                            title="Placer un point sur la carte"
+                            className="absolute right-9 top-1.5 p-1 hover:bg-slate-100 rounded-md transition-colors"
+                          >
+                            <Map className="w-4 h-4 text-emerald-600" />
+                          </button>
                           <button 
                             onClick={toggleSaveSite}
                             title={savedSites.some(s => s.lat === lat1 && s.lon === lon1) ? "Retirer des favoris" : "Ajouter aux favoris"}
@@ -801,20 +932,15 @@
 
                 {metrics1 && !loading && !error && (
                   <>
-                    <div className="flex justify-end mb-4">
-                      <button onClick={exportRawDataToCSV} className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-emerald-700 font-semibold px-4 py-2 rounded-lg transition-colors flex items-center shadow-sm text-sm">
-                        <Download className="w-4 h-4 mr-2" /> Exporter Données Brutes (CSV)
-                      </button>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {/* KPI Cards */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-2">
                       <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
                         <div className="flex justify-between items-start">
                           <div>
                             <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">T. Moyenne</p>
                             <h3 className="text-3xl font-bold text-slate-800 mt-1">{metrics1.avgTemp} <span className="text-lg text-slate-400">°C</span></h3>
                           </div>
-                          <div className="p-2.5 bg-rose-50 rounded-xl"><Thermometer className="text-rose-500" /></div>
+                          <div className="p-2.5 bg-rose-50 rounded-xl"><Thermometer className="text-rose-500 w-5 h-5" /></div>
                         </div>
                         {renderDelta(metrics1.avgTemp, metrics2, refMetrics, 'avgTemp', '°C')}
                       </div>
@@ -825,7 +951,7 @@
                             <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">Cumul Pluie</p>
                             <h3 className="text-3xl font-bold text-slate-800 mt-1">{metrics1.rain} <span className="text-lg text-slate-400">mm</span></h3>
                           </div>
-                          <div className="p-2.5 bg-blue-50 rounded-xl"><CloudRain className="text-blue-500" /></div>
+                          <div className="p-2.5 bg-blue-50 rounded-xl"><CloudRain className="text-blue-500 w-5 h-5" /></div>
                         </div>
                         {renderDelta(metrics1.rain, metrics2, refMetrics, 'rain', 'mm')}
                       </div>
@@ -836,7 +962,7 @@
                             <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">Somme (Base 0)</p>
                             <h3 className="text-3xl font-bold text-slate-800 mt-1">{metrics1.gdd0} <span className="text-lg text-slate-400">°C</span></h3>
                           </div>
-                          <div className="p-2.5 bg-amber-50 rounded-xl"><Sun className="text-amber-500" /></div>
+                          <div className="p-2.5 bg-amber-50 rounded-xl"><Sun className="text-amber-500 w-5 h-5" /></div>
                         </div>
                         {renderDelta(metrics1.gdd0, metrics2, refMetrics, 'gdd0', '°C')}
                       </div>
@@ -847,20 +973,86 @@
                             <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">Somme (Base 6)</p>
                             <h3 className="text-3xl font-bold text-slate-800 mt-1">{metrics1.gdd6} <span className="text-lg text-slate-400">°C</span></h3>
                           </div>
-                          <div className="p-2.5 bg-orange-50 rounded-xl"><Sun className="text-orange-500" /></div>
+                          <div className="p-2.5 bg-orange-50 rounded-xl"><Sun className="text-orange-500 w-5 h-5" /></div>
                         </div>
                         {renderDelta(metrics1.gdd6, metrics2, refMetrics, 'gdd6', '°C')}
                       </div>
                     </div>
 
-                    {!isSpringSowing ? (
+                    {/* Indicateurs Extrêmes */}
+                    <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 mt-4">
+                      <h3 className="font-bold text-slate-800 mb-4 flex items-center">
+                        <Thermometer className="w-5 h-5 mr-2 text-rose-500"/> Indicateurs Météorologiques Extrêmes
+                      </h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                        
+                        <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 flex flex-col justify-between shadow-sm">
+                          <div className="text-blue-900 font-medium text-sm flex items-center mb-2">
+                            <Snowflake className="w-4 h-4 mr-1.5"/> Gel (Tmin ≤ 0°C)
+                          </div>
+                          <div className="flex items-center gap-3 mt-1">
+                            <span className="font-bold text-blue-800 text-2xl">{metrics1.frostDays} j</span>
+                          </div>
+                          {renderDelta(metrics1.frostDays, metrics2, refMetrics, 'frostDays', 'j')}
+                        </div>
+                        
+                        <div className="bg-cyan-50 p-4 rounded-xl border border-cyan-100 flex flex-col justify-between shadow-sm">
+                          <div className="text-cyan-900 font-medium text-sm flex items-center mb-2">
+                            <Snowflake className="w-4 h-4 mr-1.5"/> Sans dégel (Tmax ≤ 0°C)
+                          </div>
+                          <div className="flex items-center gap-3 mt-1">
+                            <span className="font-bold text-cyan-800 text-2xl">{metrics1.iceDays} j</span>
+                          </div>
+                          {renderDelta(metrics1.iceDays, metrics2, refMetrics, 'iceDays', 'j')}
+                        </div>
+                        
+                        <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 flex flex-col justify-between shadow-sm">
+                          <div className="text-amber-900 font-medium text-sm flex items-center mb-2">
+                            <Sun className="w-4 h-4 mr-1.5"/> Été (Tmax ≥ 25°C)
+                          </div>
+                          <div className="flex items-center gap-3 mt-1">
+                            <span className="font-bold text-amber-800 text-2xl">{metrics1.summerDays} j</span>
+                          </div>
+                          {renderDelta(metrics1.summerDays, metrics2, refMetrics, 'summerDays', 'j')}
+                        </div>
+                        
+                        <div className="bg-orange-50 p-4 rounded-xl border border-orange-100 flex flex-col justify-between shadow-sm">
+                          <div className="text-orange-900 font-medium text-sm flex items-center mb-2">
+                            <Thermometer className="w-4 h-4 mr-1.5"/> Forte chaleur (Tmax ≥ 30°C)
+                          </div>
+                          <div className="flex items-center gap-3 mt-1">
+                            <span className="font-bold text-orange-800 text-2xl">{metrics1.hotDays} j</span>
+                          </div>
+                          {renderDelta(metrics1.hotDays, metrics2, refMetrics, 'hotDays', 'j')}
+                        </div>
+                        
+                        <div className="bg-rose-50 p-4 rounded-xl border border-rose-100 flex flex-col justify-between shadow-sm">
+                          <div className="text-rose-900 font-medium text-sm flex items-center mb-2">
+                            <Thermometer className="w-4 h-4 mr-1.5"/> Nuits trop. (Tmin ≥ 20°C)
+                          </div>
+                          <div className="flex items-center gap-3 mt-1">
+                            <span className="font-bold text-rose-800 text-2xl">{metrics1.tropicalNights} j</span>
+                          </div>
+                          {renderDelta(metrics1.tropicalNights, metrics2, refMetrics, 'tropicalNights', 'j')}
+                        </div>
+                        
+                      </div>
+                    </div>
+
+                    {!isSpringSowing && !forceShowStages ? (
                       <div className="bg-slate-800 p-6 rounded-2xl text-white shadow-sm flex items-start mt-6">
                         <Info className="w-6 h-6 mr-4 shrink-0 text-amber-400 mt-1" />
                         <div>
                           <h3 className="font-bold text-lg mb-1">Modules agronomiques masqués</h3>
-                          <p className="text-slate-300 text-sm leading-relaxed">
+                          <p className="text-slate-300 text-sm leading-relaxed mb-3">
                             La date de début sélectionnée ne correspond pas à un semis de printemps classique (15 fév - 15 mai). L'évaluation des stades et le risque de montaison ont été désactivés pour cette période pour éviter des interprétations erronées.
                           </p>
+                          <button 
+                            onClick={() => setForceShowStages(true)}
+                            className="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-4 py-2 rounded-lg text-sm transition-colors"
+                          >
+                            Activer quand même (Ex: Betteraves d'automne)
+                          </button>
                         </div>
                       </div>
                     ) : (
@@ -973,7 +1165,7 @@
                               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                               <XAxis dataKey="date" tick={{fontSize: 12, fill: '#64748b'}} tickFormatter={(v) => v.substring(5)} dy={10} axisLine={false} tickLine={false} />
                               
-                              {chartFilters.rain && <YAxis yAxisId="left" orientation="left" tick={{fontSize: 12, fill: '#3b82f6'}} dx={-10} axisLine={false} tickLine={false} />}
+                              {(chartFilters.rain || chartFilters.et0) && <YAxis yAxisId="left" orientation="left" tick={{fontSize: 12, fill: '#3b82f6'}} dx={-10} axisLine={false} tickLine={false} />}
                               {chartFilters.hDur90 && <YAxis yAxisId="hours" orientation="left" domain={[0, 24]} tick={{fontSize: 12, fill: '#8b5cf6'}} dx={-10} axisLine={false} tickLine={false} />}
                               {(chartFilters.tMean || chartFilters.tMin || chartFilters.tMax) && <YAxis yAxisId="temp" orientation="right" tick={{fontSize: 12, fill: '#f59e0b'}} dx={10} axisLine={false} tickLine={false} />}
                               {(chartFilters.hMean || chartFilters.hMin || chartFilters.hMax) && <YAxis yAxisId="hum" orientation="right" domain={[0, 100]} tick={{fontSize: 12, fill: '#14b8a6'}} dx={10} axisLine={false} tickLine={false} />}
@@ -1175,6 +1367,35 @@
 
                     </div>
                   </>
+                )}
+                
+                {/* Map Modal */}
+                {showMapModal && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl flex flex-col overflow-hidden">
+                      <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                        <h3 className="font-bold text-slate-800 flex items-center"><Map className="w-5 h-5 mr-2 text-emerald-600"/> Sélectionner une parcelle sur la carte</h3>
+                        <button onClick={() => setShowMapModal(false)} className="text-slate-400 hover:text-slate-600"><X /></button>
+                      </div>
+                      <div id="parcel-map" className="w-full h-96 bg-slate-100 z-0"></div>
+                      <div className="p-4 bg-slate-50 flex flex-col sm:flex-row gap-4 items-center border-t border-slate-200">
+                        <input 
+                          type="text" 
+                          placeholder="Nom de la parcelle (ex: Champ Sud)" 
+                          value={customParcelName} 
+                          onChange={e => setCustomParcelName(e.target.value)}
+                          className="flex-1 rounded-lg border-slate-300 border p-2 focus:ring-emerald-500 outline-none w-full"
+                        />
+                        <button 
+                          onClick={confirmMapSelection} 
+                          disabled={!mapMarker || !customParcelName}
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-6 py-2 rounded-lg transition-colors disabled:opacity-50 whitespace-nowrap w-full sm:w-auto shadow-sm"
+                        >
+                          Valider cette position
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
